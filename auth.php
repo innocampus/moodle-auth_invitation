@@ -1,0 +1,336 @@
+<?php
+// This file is part of Moodle - http://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+
+/**
+ * Auth plugin for temporary users that were invited using enrol_invitation.
+ *
+ * @package    auth_invitation
+ * @copyright  2025 Lars Bonczek (@innoCampus, TU Berlin)
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+
+use Random\RandomException;
+
+defined('MOODLE_INTERNAL') || die();
+
+require_once($CFG->libdir.'/authlib.php');
+
+class auth_plugin_invitation extends auth_plugin_base {
+
+    /**
+     * Constructor.
+     */
+    public function __construct() {
+        $this->authtype = 'invitation';
+        $this->config = get_config('auth_invitation');
+    }
+
+    /**
+     * Returns true if the username and password work and false if they are
+     * wrong or don't exist.
+     *
+     * @param string $username The username
+     * @param string $password The password
+     * @return bool Authentication success or failure.
+     * @throws dml_exception
+     */
+    function user_login($username, $password): bool {
+        global $CFG, $DB;
+        if ($user = $DB->get_record('user', ['username' => $username, 'mnethostid' => $CFG->mnet_localhost_id])) {
+            return validate_internal_user_password($user, $password);
+        }
+        return false;
+    }
+
+    /**
+     * Updates the user's password.
+     *
+     * Called when the user password is updated.
+     *
+     * @param object $user User table object (with system magic quotes)
+     * @param string $newpassword Plaintext password (with system magic quotes)
+     * @return boolean result
+     *
+     * @throws dml_exception
+     */
+    function user_update_password($user, $newpassword): bool {
+        $user = get_complete_user_data('id', $user->id);
+        // This will also update the stored hash to the latest algorithm
+        // if the existing hash is using an out-of-date algorithm (or the
+        // legacy md5 algorithm).
+        return update_internal_user_password($user, $newpassword);
+    }
+
+    function can_signup(): true {
+        return true;
+    }
+
+    /**
+     * Sign up a new invited user without confirmation.
+     * Password is passed in plaintext.
+     *
+     * @param object $user new user object
+     * @param boolean $notify print notice with link and terminate
+     * @throws moodle_exception
+     * @throws RandomException
+     */
+    function user_signup($user, $notify = true): bool {
+        global $CFG, $SESSION;
+
+        // Validate invitation token.
+        if (empty($user->invitationtoken)) {
+            throw new coding_exception('Missing invitationtoken in user data from signup form.');
+        }
+        $invite = $this->get_valid_invitation($user->invitationtoken);
+        if (!$invite) {
+            throw new moodle_exception('invalidinvite', 'auth_invitation');
+        }
+        if (strtolower($invite->email) !== strtolower($user->email)) {
+            throw new coding_exception('Email in user data from signup form does not match email in invitation.');
+        }
+        if ($invite->userid) {
+            throw new coding_exception('Cannot sign up using invitation for existing user.');
+        }
+
+        // We can confirm the user since the invitation token is valid (and matches their email address).
+        $user->confirmed = 1;
+
+        // Generate a unique username for the new user.
+        $user->username = $this->generate_unique_username();
+
+        // Create user account.
+        require_once($CFG->dirroot.'/user/profile/lib.php');
+        require_once($CFG->dirroot.'/user/lib.php');
+
+        $plainpassword = $user->password;
+        $user->password = hash_internal_user_password($user->password);
+        if (empty($user->calendartype)) {
+            $user->calendartype = $CFG->calendartype;
+        }
+
+        $user->id = user_create_user($user, false, false);
+
+        user_add_password_history($user->id, $plainpassword);
+
+        // Save any custom profile field information.
+        profile_save_data($user);
+
+        // Trigger event.
+        \core\event\user_created::create_from_userid($user->id)->trigger();
+
+        if ($notify) {
+            // Log in newly created user.
+            $user = get_complete_user_data('username', $user->username);
+            complete_user_login($user);
+
+            \core\session\manager::apply_concurrent_login_limit($user->id, session_id());
+
+            // Redirect to course enrolment.
+            if ($SESSION->wantsurl) {
+                redirect(new moodle_url($SESSION->wantsurl));
+            } else {
+                redirect(new moodle_url('/enrol/invitation/enrol.php', ['token' => $invite->token]));
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * Get valid (i.e., unused and not expired) invitation record from token.
+     *
+     * @param string $token
+     * @return stdClass|null Invitation record or null if not found or not valid.
+     * @throws dml_exception
+     */
+    function get_valid_invitation(string $token): ?stdClass {
+        global $DB;
+        if (!enrol_get_plugin('invitation')) {
+            return null;
+        }
+        return $DB->get_record_select(
+            'enrol_invitation',
+            'token = :token AND tokenused = 0 AND timeexpiration >= :time', [
+                'token' => $token,
+                'time' => time(),
+            ]
+        );
+    }
+
+    /**
+     * Get the current invitation token from $SESSION->wantsurl.
+     *
+     * @return string|null Invitation record or null if no invitation found in session.
+     * @throws moodle_exception
+     * @throws dml_exception
+     */
+    function get_invitation_token_from_session(): ?string {
+        global $SESSION;
+        if (empty($SESSION->wantsurl)) {
+            return null;
+        }
+        $wantsurl = new moodle_url($SESSION->wantsurl);
+        if ($wantsurl->get_path() !== '/enrol/invitation/enrol.php') {
+            return null;
+        }
+        return $wantsurl->param('token');
+    }
+
+    /**
+     * Return a form to capture user details for account creation.
+     * This is used in /login/signup.php.
+     *
+     * @return moodleform A form which edits a record from the user table.
+     * @throws dml_exception
+     * @throws moodle_exception
+     */
+    function signup_form(?string $invitationtoken = null): moodleform {
+        $token = $invitationtoken ?: $this->get_invitation_token_from_session();
+        if (!$token) {
+            throw new moodle_exception('invalidinvite', 'auth_invitation');
+        }
+        $invite = $this->get_valid_invitation($token);
+        if (!$invite) {
+            throw new moodle_exception('invalidinvite', 'auth_invitation');
+        }
+        $customdata = [
+            'invitationtoken' => $invite->token,
+            'email' => $invite->email,
+        ];
+        return new \auth_invitation\forms\login_signup_form(null, $customdata, 'post', '', ['autocomplete' => 'on']);
+    }
+
+    /**
+     * Generate a unique username for an invited user.
+     *
+     * @throws coding_exception
+     * @throws RandomException
+     * @throws dml_exception
+     */
+    function generate_unique_username(): string {
+        global $DB, $CFG;
+        $prefix = 'invited';
+        $digits = 6;
+        $maxtries = 10;
+        for ($i = 0; $i < $maxtries; $i++) {
+            $number = random_int(0, pow(10, $digits) - 1);
+            $username = $prefix . sprintf("%0{$digits}d", $number);
+            if (!$DB->record_exists('user', ['username' => $username, 'mnethostid' => $CFG->mnet_localhost_id])) {
+                return $username;
+            }
+        }
+        throw new coding_exception("Could not generate a unique username after $maxtries tries.");
+    }
+
+    /**
+     * Hook called by require_login before redirecting to the login page.
+     *
+     * @throws moodle_exception
+     * @throws dml_exception
+     */
+    public function pre_loginpage_hook(): void {
+        $token = $this->get_invitation_token_from_session();
+        if (!$token) {
+            return;
+        }
+        $invite = $this->get_valid_invitation($token);
+        if (!$invite) {
+            throw new moodle_exception('invalidinvite', 'auth_invitation');
+        }
+        if ($invite->userid) {
+            // Invite was sent to existing user -> let them log in normally.
+            return;
+        }
+        $user = $this->get_user_by_email($invite->email);
+        if ($user) {
+            // Invited user exists in DB -> let them log in normally.
+            return;
+        }
+        // Invited user does not exist in DB -> immediately redirect to our custom signup form.
+        redirect(new moodle_url('/auth/invitation/signup.php', ['invitationtoken' => $token]));
+    }
+
+    /**
+     * Get user by email.
+     *
+     * @param string $email Case and accent-insensitive email address.
+     * @return stdClass|null User or null if not found.
+     * @throws dml_exception
+     */
+    function get_user_by_email(string $email): ?stdClass {
+        global $DB, $CFG;
+
+        // Emails in Moodle as case-insensitive and accents-sensitive. Such a combination can lead to very slow queries
+        // on some DBs such as MySQL. So we first get the list of candidate users in a subselect via more effective
+        // accent-insensitive query that can make use of the index and only then we search within that limited subset.
+        $sql = "SELECT *
+                  FROM {user}
+                 WHERE " . $DB->sql_equal('email', ':email1', false, true) . "
+                   AND id IN (SELECT id
+                                FROM {user}
+                               WHERE " . $DB->sql_equal('email', ':email2', false, false) . "
+                                 AND mnethostid = :mnethostid)";
+
+        $params = [
+            'email1' => $email,
+            'email2' => $email,
+            'mnethostid' => $CFG->mnet_localhost_id,
+        ];
+
+        return $DB->get_record_sql($sql, $params) ?: null;
+    }
+
+    /**
+     * Returns true if this authentication plugin is 'internal'.
+     *
+     * @return bool
+     */
+    function is_internal(): bool {
+        return true;
+    }
+
+    /**
+     * Returns true if this authentication plugin can change the user's
+     * password.
+     *
+     * @return bool
+     */
+    function can_change_password(): bool {
+        return true;
+    }
+
+    /**
+     * Returns the URL for changing the user's pw, or empty if the default can
+     * be used.
+     *
+     * @return moodle_url|null
+     */
+    function change_password_url(): ?moodle_url {
+        return null; // use default internal method
+    }
+
+    /**
+     * Returns true if plugin allows resetting of internal password.
+     *
+     * @return bool
+     */
+    function can_reset_password(): bool {
+        return true;
+    }
+
+}
+
+
