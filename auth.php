@@ -108,8 +108,10 @@ class auth_plugin_invitation extends auth_plugin_base {
         // We can confirm the user since the invitation token is valid (and matches their email address).
         $user->confirmed = 1;
 
-        // Generate a unique username for the new user.
-        $user->username = $this->generate_unique_username();
+        if (get_config('auth_invitation', 'generateusername')) {
+            // Generate a unique username for the new user.
+            $user->username = $this->generate_unique_username();
+        }
 
         // Create user account.
         require_once($CFG->dirroot.'/user/profile/lib.php');
@@ -246,7 +248,7 @@ class auth_plugin_invitation extends auth_plugin_base {
      */
     function generate_unique_username(): string {
         global $DB, $CFG;
-        $prefix = 'invited';
+        $prefix = get_config('auth_invitation', 'usernameprefix') ?? 'temp';
         $digits = 6;
         $maxtries = 10;
         for ($i = 0; $i < $maxtries; $i++) {

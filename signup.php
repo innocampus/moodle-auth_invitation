@@ -33,6 +33,7 @@ require_once($CFG->dirroot . '/login/lib.php');
 
 $token = required_param('invitationtoken', PARAM_ALPHANUM);
 
+/** @var auth_plugin_invitation $authplugin */
 $authplugin = get_auth_plugin('invitation');
 
 $invite = $authplugin->get_valid_invitation($token);
