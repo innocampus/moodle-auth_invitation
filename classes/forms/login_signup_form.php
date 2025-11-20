@@ -57,7 +57,19 @@ class login_signup_form extends moodleform implements renderable, templatable {
 
         $mform = $this->_form;
 
-        $mform->addElement('html', get_string('registerhere', 'auth_invitation'));
+        $mform->addElement('html', \html_writer::tag('p', get_string('registerhere', 'auth_invitation')));
+
+        // Check whether enrol_invitation plugin allows mismatching email addresses.
+        $allowmismatchingemails = get_config('enrol_invitation', 'allowmismatchingemails');
+        if ($allowmismatchingemails) {
+            $mform->addElement('html', \html_writer::tag('p', get_string('registeredusersloginhere', 'auth_invitation'), ['class' => 'fw-bold']));
+            $mform->addElement('html', \html_writer::tag('p',
+                \html_writer::link(get_login_url(), get_string('alreadyregistered', 'auth_invitation'), ['class' => 'btn btn-secondary']),
+                ['class' => 'text-center']
+            ));
+        } else {
+            $mform->addElement('html', \html_writer::tag('p', get_string('registereduserscontactteachers', 'auth_invitation'), ['class' => 'fw-bold']));
+        }
 
         $mform->addElement('hidden', 'invitationtoken');
         $mform->setConstant('invitationtoken', $invitationtoken);
