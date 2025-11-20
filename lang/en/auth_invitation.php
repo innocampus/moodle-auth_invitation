@@ -22,7 +22,9 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-$string['description'] = 'Users can only register using this plugin when they have been invited to a course using enrol_invitation.';
+$string['assignedroles'] = 'Roles assigned to new users';
+$string['assignedroles_help'] = 'Roles selected here are automatically assigned in the system context to all users who register using this plugin. This can be used to assign a role to invited users which distinguishes them from other users and prohibits certain permissions (e.g. self-enrolment into courses).';
+$string['description'] = 'Users can only register using this plugin when they have been invited to a course using the enrolment method "Invitation" (enrol_invitation).';
 $string['pluginname'] = 'Invitation';
 $string['privacy:metadata'] = 'The Invitation authentication plugin does not store any personal data.';
 $string['invalidinvite'] = 'This invitation is expired or has already been used.';

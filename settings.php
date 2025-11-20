@@ -30,6 +30,10 @@ if ($ADMIN->fulltree) {
     $settings->add(new admin_setting_heading('auth_invitation/pluginname', '',
         new lang_string('description', 'auth_invitation')));
 
+    $settings->add(new admin_setting_pickroles('auth_invitation/assignedroles',
+        get_string('assignedroles', 'auth_invitation'), get_string('assignedroles_help', 'auth_invitation'),
+        []));
+
     // Display locking / mapping of profile fields.
     $authplugin = get_auth_plugin('invitation');
     display_auth_lock_options($settings, $authplugin->authtype, $authplugin->userfields,

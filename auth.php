@@ -128,6 +128,9 @@ class auth_plugin_invitation extends auth_plugin_base {
         // Save any custom profile field information.
         profile_save_data($user);
 
+        // Assign global roles.
+        $this->assign_global_roles($user->id);
+
         // Trigger event.
         \core\event\user_created::create_from_userid($user->id)->trigger();
 
@@ -147,6 +150,27 @@ class auth_plugin_invitation extends auth_plugin_base {
         }
 
         return true;
+    }
+
+    /**
+     * Assigns global roles selected in the auth_invitation/assignedroles setting to a newly registered user.
+     *
+     * @param int $userid The user ID.
+     * @return void
+     * @throws coding_exception
+     * @throws dml_exception
+     */
+    function assign_global_roles(int $userid): void {
+        $roles = get_config('auth_invitation', 'assignedroles');
+        foreach (explode(',', $roles) as $roleid) {
+            $roleid = trim($roleid);
+            if (empty($roleid)) {
+                continue;
+            }
+
+            // The function just returns when the user already has this role.
+            \role_assign($roleid, $userid, \context_system::instance(), 'auth_invitation');
+        }
     }
 
     /**
