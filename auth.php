@@ -278,6 +278,10 @@ class auth_plugin_invitation extends auth_plugin_base {
             // Invite was sent to existing user -> let them log in normally.
             return;
         }
+        if (!$this->is_allowed_email($invite->email)) {
+            // We do not allow self-registration for users with this email -> show login page.
+            return;
+        }
         $user = $this->get_user_by_email($invite->email);
         if ($user) {
             // Invited user exists in DB -> let them log in normally.
@@ -285,6 +289,27 @@ class auth_plugin_invitation extends auth_plugin_base {
         }
         // Invited user does not exist in DB -> immediately redirect to our custom signup form.
         redirect(new moodle_url('/auth/invitation/signup.php', ['invitationtoken' => $token]));
+    }
+
+    /**
+     * Checks whether self-registration using this plugin is allowed for the user with the specified email address.
+     *
+     * This first checks whether the email address is prohibited by the setting auth_invitation/prohibitedemailregex and then
+     * whether it is allowed by the setting auth_invitation/allowedemailregex.
+     *
+     * @param string $email The email address of the invited user.
+     * @return bool Whether self-registration using this plugin is allowed.
+     * @throws dml_exception
+     */
+    function is_allowed_email(string $email): bool {
+        $config = get_config('auth_invitation');
+        if (!empty($config->prohibitedemailregex) && preg_match("/$config->prohibitedemailregex/i", $email)) {
+            return false;
+        }
+        if (!empty($config->allowedemailregex) && !preg_match("/$config->allowedemailregex/i", $email)) {
+            return false;
+        }
+        return true;
     }
 
     /**

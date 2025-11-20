@@ -34,6 +34,14 @@ if ($ADMIN->fulltree) {
         get_string('assignedroles', 'auth_invitation'), get_string('assignedroles_help', 'auth_invitation'),
         []));
 
+    $settings->add(new admin_setting_configtext('auth_invitation/allowedemailregex',
+        get_string('allowedemailregex', 'auth_invitation'), get_string('allowedemailregex_help', 'auth_invitation'),
+        ''));
+
+    $settings->add(new admin_setting_configtext('auth_invitation/prohibitedemailregex',
+        get_string('prohibitedemailregex', 'auth_invitation'), get_string('prohibitedemailregex_help', 'auth_invitation'),
+        ''));
+
     // Display locking / mapping of profile fields.
     $authplugin = get_auth_plugin('invitation');
     display_auth_lock_options($settings, $authplugin->authtype, $authplugin->userfields,

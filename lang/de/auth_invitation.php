@@ -22,10 +22,14 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+$string['allowedemailregex'] = 'Regex für erlaubte E-Mail-Adressen';
+$string['allowedemailregex_help'] = 'Geben Sie hier einen regulären Ausdruck an, der in der E-Mail-Adresse (in Kleinbuchstaben) einer eingeladenen Person erscheinen muss, damit eine Registrierung mit diesem Plugin möglich ist. Dies hat eine niedrigere Priorität als das Feld auth_invitation/prohibitedemailregex. Wird das Feld frei gelassen, so sind alle E-Mail-Adressen erlaubt.';
 $string['assignedroles'] = 'Rollen für neue Nutzer/innen';
 $string['assignedroles_help'] = 'Hier ausgewählte Rollen werden automatisch im Systemkontext allen Nutzer/innen zugewiesen, die sich mit diesem Plugin registrieren. Dies kann genutzt werden, um allen eingeladenen Nutzer/innen automatisch eine Rolle zuzuweisen, die sie von anderen Nutzer/innen unterscheidet und ihnen bestimmte Rechte entzieht (z.B. die Selbsteinschreibung in Kurse).';
 $string['description'] = 'Eine Registrierung mit diesem Plugin ist für Nutzende nur dann möglich, wenn diese mittels der Einschreibemethode "Einladung" (enrol_invitation) in einen Kurs eingeladen wurden.';
 $string['pluginname'] = 'Einladung';
 $string['privacy:metadata'] = 'Das Authentifizierungsplugin Einladung speichert keine personenbezogenen Daten.';
+$string['prohibitedemailregex'] = 'Regex für verbotene E-Mail-Adressen';
+$string['prohibitedemailregex_help'] = 'Geben Sie hier einen regulären Ausdruck an, der NICHT in der E-Mail-Adresse (in Kleinbuchstaben) einer eingeladenen Person erscheinen darf, damit eine Registrierung mit diesem Plugin möglich ist. Dies hat eine höhere Priorität als das Feld auth_invitation/allowedemailregex. Wird das Feld frei gelassen, so sind alle E-Mail-Adressen erlaubt.';
 $string['invalidinvite'] = 'Diese Einladung ist abgelaufen oder wurde bereits verwendet.';
 $string['registerhere'] = '<p>Sie wurden in einen Kurs auf dieser Seite eingeladen, scheinen aber noch nicht über ein Nutzerkonto zu verfügen. Bitte füllen Sie das untenstehende Formular aus, um einen temporären Zugang zu erhalten, mit dem Sie auf den Kurs zugreifen können.</p><p><b>Falls Sie bereits ein Nutzerkonto haben, kontaktieren Sie bitte die Kursverantwortlichen, um eine neue Einladung für Ihr existierendes Konto zu erhalten.</b></p>';
