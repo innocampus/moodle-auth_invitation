@@ -27,6 +27,8 @@ namespace auth_invitation\forms;
 use core\exception\coding_exception;
 use core\output\renderer_base;
 use core_user;
+use dml_exception;
+use html_writer;
 use moodleform;
 use renderable;
 use stdClass;
@@ -40,9 +42,31 @@ require_once($CFG->dirroot . '/user/profile/lib.php');
 require_once($CFG->dirroot . '/user/editlib.php');
 require_once($CFG->dirroot . '/login/lib.php');
 
+/**
+ * User sign-up form. Adapted from {@see \login_signup_form}.
+ *
+ * Only users who were invited to a course using enrol_invitation can use this form to sign up. The invitation token and the email
+ * address which the invitation was sent to must be given in the form's custom data, e.g.
+ *
+ *     $customdata = [
+ *         'invitationtoken' => $invite->token,
+ *         'email' => $invite->email,
+ *     ];
+ *     new \auth_invitation\forms\login_signup_form(null, $customdata, 'post', '', ['autocomplete' => 'on']);
+ *
+ * @package    auth_invitation
+ * @copyright  2025 Lars Bonczek (@innoCampus, TU Berlin)
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 class login_signup_form extends moodleform implements renderable, templatable {
-
-    function definition(): void {
+    /**
+     * Form definition.
+     *
+     * @return void
+     * @throws dml_exception
+     * @throws coding_exception
+     */
+    protected function definition(): void {
         global $CFG;
 
         if (empty($this->_customdata['invitationtoken'])) {
@@ -57,18 +81,29 @@ class login_signup_form extends moodleform implements renderable, templatable {
 
         $mform = $this->_form;
 
-        $mform->addElement('html', \html_writer::tag('p', get_string('registerhere', 'auth_invitation')));
+        $mform->addElement('html', html_writer::tag('p', get_string('registerhere', 'auth_invitation')));
 
         // Check whether enrol_invitation plugin allows mismatching email addresses.
         $allowmismatchingemails = get_config('enrol_invitation', 'allowmismatchingemails');
         if ($allowmismatchingemails) {
-            $mform->addElement('html', \html_writer::tag('p', get_string('registeredusersloginhere', 'auth_invitation'), ['class' => 'fw-bold']));
-            $mform->addElement('html', \html_writer::tag('p',
-                \html_writer::link(get_login_url(), get_string('alreadyregistered', 'auth_invitation'), ['class' => 'btn btn-secondary']),
-                ['class' => 'text-center']
-            ));
+            $mform->addElement(
+                'html',
+                html_writer::tag('p', get_string('registeredusersloginhere', 'auth_invitation'), ['class' => 'fw-bold'])
+            );
+            $loginlink = html_writer::link(
+                get_login_url(),
+                get_string('alreadyregistered', 'auth_invitation'),
+                ['class' => 'btn btn-secondary']
+            );
+            $mform->addElement(
+                'html',
+                html_writer::tag('p', $loginlink, ['class' => 'text-center'])
+            );
         } else {
-            $mform->addElement('html', \html_writer::tag('p', get_string('registereduserscontactteachers', 'auth_invitation'), ['class' => 'fw-bold']));
+            $mform->addElement(
+                'html',
+                html_writer::tag('p', get_string('registereduserscontactteachers', 'auth_invitation'), ['class' => 'fw-bold'])
+            );
         }
 
         $mform->addElement('hidden', 'invitationtoken');
@@ -80,18 +115,23 @@ class login_signup_form extends moodleform implements renderable, templatable {
             $mform->addRule('username', get_string('missingusername'), 'required', null, 'client');
         }
 
-        if (!empty($CFG->passwordpolicy)){
+        if (!empty($CFG->passwordpolicy)) {
             $mform->addElement('static', 'passwordpolicyinfo', '', print_password_policy());
         }
         $mform->addElement('password', 'password', get_string('password'), [
             'maxlength' => MAX_PASSWORD_CHARACTERS,
             'size' => 12,
-            'autocomplete' => 'new-password'
+            'autocomplete' => 'new-password',
         ]);
         $mform->setType('password', core_user::get_property_type('password'));
         $mform->addRule('password', get_string('missingpassword'), 'required', null, 'client');
-        $mform->addRule('password', get_string('maximumchars', '', MAX_PASSWORD_CHARACTERS),
-            'maxlength', MAX_PASSWORD_CHARACTERS, 'client');
+        $mform->addRule(
+            'password',
+            get_string('maximumchars', '', MAX_PASSWORD_CHARACTERS),
+            'maxlength',
+            MAX_PASSWORD_CHARACTERS,
+            'client'
+        );
 
         $mform->addElement('text', 'email', get_string('email'), 'disabled="disabled"');
         $mform->setConstant('email', $email);
@@ -115,13 +155,13 @@ class login_signup_form extends moodleform implements renderable, templatable {
         }
 
         $country = get_string_manager()->get_list_of_countries();
-        $default_country[''] = get_string('selectacountry');
-        $country = array_merge($default_country, $country);
+        $defaultcountry[''] = get_string('selectacountry');
+        $country = array_merge($defaultcountry, $country);
         $mform->addElement('select', 'country', get_string('country'), $country);
 
-        if( !empty($CFG->country) ){
+        if (!empty($CFG->country)) {
             $mform->setDefault('country', $CFG->country);
-        }else{
+        } else {
             $mform->setDefault('country', '');
         }
 
@@ -135,13 +175,17 @@ class login_signup_form extends moodleform implements renderable, templatable {
         $manager = new \core_privacy\local\sitepolicy\manager();
         $manager->signup_form($mform);
 
-        // buttons
+        // Buttons.
         $this->set_display_vertical();
         $this->add_action_buttons(true, get_string('createaccount'));
-
     }
 
-    function definition_after_data(): void {
+    /**
+     * Form definition after data.
+     *
+     * @return void
+     */
+    public function definition_after_data(): void {
         $mform = $this->_form;
         $mform->applyFilter('username', 'trim');
 
@@ -202,7 +246,7 @@ class login_signup_form extends moodleform implements renderable, templatable {
         $formhtml = ob_get_contents();
         ob_end_clean();
         return [
-            'formhtml' => $formhtml
+            'formhtml' => $formhtml,
         ];
     }
 }

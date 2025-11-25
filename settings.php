@@ -25,40 +25,66 @@
 defined('MOODLE_INTERNAL') || die;
 
 if ($ADMIN->fulltree) {
-
     // Introductory explanation.
-    $settings->add(new admin_setting_heading('auth_invitation/pluginname', '',
-        new lang_string('description', 'auth_invitation')));
+    $settings->add(new admin_setting_heading(
+        'auth_invitation/pluginname',
+        '',
+        new lang_string('description', 'auth_invitation')
+    ));
 
     // Roles to assign to registered users.
-    $settings->add(new admin_setting_pickroles('auth_invitation/assignedroles',
-        get_string('assignedroles', 'auth_invitation'), get_string('assignedroles_help', 'auth_invitation'),
-        []));
+    $settings->add(new admin_setting_pickroles(
+        'auth_invitation/assignedroles',
+        get_string('assignedroles', 'auth_invitation'),
+        get_string('assignedroles_help', 'auth_invitation'),
+        []
+    ));
 
     // Regexes for allowed and prohibited email addresses.
-    $settings->add(new admin_setting_configtext('auth_invitation/allowedemailregex',
-        get_string('allowedemailregex', 'auth_invitation'), get_string('allowedemailregex_help', 'auth_invitation'),
-        ''));
+    $settings->add(new admin_setting_configtext(
+        'auth_invitation/allowedemailregex',
+        get_string('allowedemailregex', 'auth_invitation'),
+        get_string('allowedemailregex_help', 'auth_invitation'),
+        ''
+    ));
 
-    $settings->add(new admin_setting_configtext('auth_invitation/prohibitedemailregex',
-        get_string('prohibitedemailregex', 'auth_invitation'), get_string('prohibitedemailregex_help', 'auth_invitation'),
-        ''));
+    $settings->add(new admin_setting_configtext(
+        'auth_invitation/prohibitedemailregex',
+        get_string('prohibitedemailregex', 'auth_invitation'),
+        get_string('prohibitedemailregex_help', 'auth_invitation'),
+        ''
+    ));
 
     // Settings for sign up form.
-    $settings->add(new admin_setting_heading('auth_invitation/signupsettings', new lang_string('signupsettings', 'auth_invitation'),
-        new lang_string('signupsettingsdesc', 'auth_invitation')));
+    $settings->add(new admin_setting_heading(
+        'auth_invitation/signupsettings',
+        new lang_string('signupsettings', 'auth_invitation'),
+        new lang_string('signupsettingsdesc', 'auth_invitation')
+    ));
 
-    $settings->add(new admin_setting_configcheckbox('auth_invitation/generateusername',
-        get_string('generateusername', 'auth_invitation'), get_string('generateusername_help', 'auth_invitation'),
-        0));
+    $settings->add(new admin_setting_configcheckbox(
+        'auth_invitation/generateusername',
+        get_string('generateusername', 'auth_invitation'),
+        get_string('generateusername_help', 'auth_invitation'),
+        0
+    ));
 
-    $settings->add(new admin_setting_requiredtext('auth_invitation/usernameprefix',
-        get_string('usernameprefix', 'auth_invitation'), get_string('usernameprefix_help', 'auth_invitation'),
-        'temp'));
+    $settings->add(new admin_setting_requiredtext(
+        'auth_invitation/usernameprefix',
+        get_string('usernameprefix', 'auth_invitation'),
+        get_string('usernameprefix_help', 'auth_invitation'),
+        'temp'
+    ));
     $settings->hide_if('auth_invitation/usernameprefix', 'auth_invitation/generateusername');
 
     // Display locking / mapping of profile fields.
     $authplugin = get_auth_plugin('invitation');
-    display_auth_lock_options($settings, $authplugin->authtype, $authplugin->userfields,
-        get_string('auth_fieldlocks_help', 'auth'), false, false);
+    display_auth_lock_options(
+        $settings,
+        $authplugin->authtype,
+        $authplugin->userfields,
+        get_string('auth_fieldlocks_help', 'auth'),
+        false,
+        false
+    );
 }

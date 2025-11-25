@@ -24,6 +24,8 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+// phpcs:ignoreFile moodle.Files.RequireLogin.Missing
+
 require('../../config.php');
 
 global $CFG, $OUTPUT, $PAGE, $SESSION, $USER, $SITE;
@@ -44,7 +46,7 @@ if (!$invite) {
 $PAGE->set_url('/auth/invitation/signup.php');
 $PAGE->set_context(context_system::instance());
 
-if (isloggedin() and !isguestuser()) {
+if (isloggedin() && !isguestuser()) {
     // Redirect to enrolment when already logged in.
     $wantsurl = $SESSION->wantsurl;
     if (empty($wantsurl) || $PAGE->url->compare(new moodle_url($wantsurl), URL_MATCH_BASE)) {
@@ -70,23 +72,22 @@ if (\core_auth\digital_consent::is_age_digital_consent_verification_enabled()) {
 // Can be used to force additional actions before sign up such as acceptance of policies, validations, etc.
 core_login_pre_signup_requests();
 
-$mform_signup = $authplugin->signup_form($token);
+$signupform = $authplugin->signup_form($token);
 
-if ($mform_signup->is_cancelled()) {
+if ($signupform->is_cancelled()) {
     redirect(get_login_url());
-
-} else if ($user = $mform_signup->get_data()) {
+} else if ($user = $signupform->get_data()) {
     // Add missing required fields.
     $user = signup_setup_new_user($user);
 
-    // $user->auth is set to $CFG->registerauth by signup_setup_new_user(). We need to override that.
+    // The field $user->auth is set to $CFG->registerauth by signup_setup_new_user(). We need to override that.
     $user->auth = 'invitation';
 
     // Plugins can perform post sign up actions once data has been validated.
     core_login_post_signup_requests($user);
 
-    $authplugin->user_signup($user, true); // prints notice and link to login/index.php
-    exit; //never reached
+    $authplugin->user_signup($user, true); // Prints notice and link to login/index.php.
+    exit; // Never reached.
 }
 
 
@@ -102,7 +103,7 @@ $PAGE->set_heading($SITE->fullname);
 
 echo $OUTPUT->header();
 
-if ($mform_signup instanceof renderable) {
+if ($signupform instanceof renderable) {
     // Try and use the renderer from the auth plugin if it exists.
     try {
         $renderer = $PAGE->get_renderer('auth_' . $authplugin->authtype);
@@ -110,9 +111,9 @@ if ($mform_signup instanceof renderable) {
         // Fall back on the general renderer.
         $renderer = $OUTPUT;
     }
-    echo $renderer->render($mform_signup);
+    echo $renderer->render($signupform);
 } else {
     // Fall back for auth plugins not using renderables.
-    $mform_signup->display();
+    $signupform->display();
 }
 echo $OUTPUT->footer();

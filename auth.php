@@ -26,10 +26,18 @@ use Random\RandomException;
 
 defined('MOODLE_INTERNAL') || die();
 
-require_once($CFG->libdir.'/authlib.php');
+require_once($CFG->libdir . '/authlib.php');
 
+/**
+ * Auth plugin for temporary users that were invited using enrol_invitation.
+ *
+ * Users can only register using this plugin when they have been invited to a course using enrol_invitation.
+ *
+ * @package    auth_invitation
+ * @copyright  2025 Lars Bonczek (@innoCampus, TU Berlin)
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 class auth_plugin_invitation extends auth_plugin_base {
-
     /**
      * Constructor.
      */
@@ -47,7 +55,7 @@ class auth_plugin_invitation extends auth_plugin_base {
      * @return bool Authentication success or failure.
      * @throws dml_exception
      */
-    function user_login($username, $password): bool {
+    public function user_login($username, $password): bool {
         global $CFG, $DB;
         if ($user = $DB->get_record('user', ['username' => $username, 'mnethostid' => $CFG->mnet_localhost_id])) {
             return validate_internal_user_password($user, $password);
@@ -66,7 +74,7 @@ class auth_plugin_invitation extends auth_plugin_base {
      *
      * @throws dml_exception
      */
-    function user_update_password($user, $newpassword): bool {
+    public function user_update_password($user, $newpassword): bool {
         $user = get_complete_user_data('id', $user->id);
         // This will also update the stored hash to the latest algorithm
         // if the existing hash is using an out-of-date algorithm (or the
@@ -74,7 +82,12 @@ class auth_plugin_invitation extends auth_plugin_base {
         return update_internal_user_password($user, $newpassword);
     }
 
-    function can_signup(): true {
+    /**
+     * Returns true if plugin allows user signup.
+     *
+     * @return true
+     */
+    public function can_signup(): true {
         return true;
     }
 
@@ -82,12 +95,14 @@ class auth_plugin_invitation extends auth_plugin_base {
      * Sign up a new invited user without confirmation.
      * Password is passed in plaintext.
      *
+     * This requires `$user->invitationtoken` to be set to a valid invitation token. `$user->email` must match that invitation.
+     *
      * @param object $user new user object
      * @param boolean $notify print notice with link and terminate
      * @throws moodle_exception
      * @throws RandomException
      */
-    function user_signup($user, $notify = true): bool {
+    public function user_signup($user, $notify = true): bool {
         global $CFG, $SESSION;
 
         // Validate invitation token.
@@ -114,8 +129,8 @@ class auth_plugin_invitation extends auth_plugin_base {
         }
 
         // Create user account.
-        require_once($CFG->dirroot.'/user/profile/lib.php');
-        require_once($CFG->dirroot.'/user/lib.php');
+        require_once($CFG->dirroot . '/user/profile/lib.php');
+        require_once($CFG->dirroot . '/user/lib.php');
 
         $plainpassword = $user->password;
         $user->password = hash_internal_user_password($user->password);
@@ -162,7 +177,7 @@ class auth_plugin_invitation extends auth_plugin_base {
      * @throws coding_exception
      * @throws dml_exception
      */
-    function assign_global_roles(int $userid): void {
+    protected function assign_global_roles(int $userid): void {
         $roles = get_config('auth_invitation', 'assignedroles');
         foreach (explode(',', $roles) as $roleid) {
             $roleid = trim($roleid);
@@ -182,14 +197,15 @@ class auth_plugin_invitation extends auth_plugin_base {
      * @return stdClass|null Invitation record or null if not found or not valid.
      * @throws dml_exception
      */
-    function get_valid_invitation(string $token): ?stdClass {
+    public function get_valid_invitation(string $token): ?stdClass {
         global $DB;
         if (!enrol_get_plugin('invitation')) {
             return null;
         }
         return $DB->get_record_select(
             'enrol_invitation',
-            'token = :token AND tokenused = 0 AND timeexpiration >= :time', [
+            'token = :token AND tokenused = 0 AND timeexpiration >= :time',
+            [
                 'token' => $token,
                 'time' => time(),
             ]
@@ -203,7 +219,7 @@ class auth_plugin_invitation extends auth_plugin_base {
      * @throws moodle_exception
      * @throws dml_exception
      */
-    function get_invitation_token_from_session(): ?string {
+    protected function get_invitation_token_from_session(): ?string {
         global $SESSION;
         if (empty($SESSION->wantsurl)) {
             return null;
@@ -217,13 +233,17 @@ class auth_plugin_invitation extends auth_plugin_base {
 
     /**
      * Return a form to capture user details for account creation.
-     * This is used in /login/signup.php.
+     * This is used in /login/signup.php and /auth/invitation/signup.php.
      *
+     * Only users who were invited to a course using enrol_invitation can use this form to sign up.
+     *
+     * @param string|null $invitationtoken The user's invitation token. Is automatically determined from $SESSION->wantsurl if not
+     * provided.
      * @return moodleform A form which edits a record from the user table.
      * @throws dml_exception
      * @throws moodle_exception
      */
-    function signup_form(?string $invitationtoken = null): moodleform {
+    public function signup_form(?string $invitationtoken = null): moodleform {
         $token = $invitationtoken ?: $this->get_invitation_token_from_session();
         if (!$token) {
             throw new moodle_exception('invalidinvite', 'auth_invitation');
@@ -246,7 +266,7 @@ class auth_plugin_invitation extends auth_plugin_base {
      * @throws RandomException
      * @throws dml_exception
      */
-    function generate_unique_username(): string {
+    protected function generate_unique_username(): string {
         global $DB, $CFG;
         $prefix = get_config('auth_invitation', 'usernameprefix') ?? 'temp';
         $digits = 6;
@@ -303,7 +323,7 @@ class auth_plugin_invitation extends auth_plugin_base {
      * @return bool Whether self-registration using this plugin is allowed.
      * @throws dml_exception
      */
-    function is_allowed_email(string $email): bool {
+    protected function is_allowed_email(string $email): bool {
         $config = get_config('auth_invitation');
         if (!empty($config->prohibitedemailregex) && preg_match("/$config->prohibitedemailregex/i", $email)) {
             return false;
@@ -321,7 +341,7 @@ class auth_plugin_invitation extends auth_plugin_base {
      * @return stdClass|null User or null if not found.
      * @throws dml_exception
      */
-    function get_user_by_email(string $email): ?stdClass {
+    protected function get_user_by_email(string $email): ?stdClass {
         global $DB, $CFG;
 
         // Emails in Moodle as case-insensitive and accents-sensitive. Such a combination can lead to very slow queries
@@ -347,9 +367,9 @@ class auth_plugin_invitation extends auth_plugin_base {
     /**
      * Returns true if this authentication plugin is 'internal'.
      *
-     * @return bool
+     * @return true
      */
-    function is_internal(): bool {
+    public function is_internal(): bool {
         return true;
     }
 
@@ -357,9 +377,9 @@ class auth_plugin_invitation extends auth_plugin_base {
      * Returns true if this authentication plugin can change the user's
      * password.
      *
-     * @return bool
+     * @return true
      */
-    function can_change_password(): bool {
+    public function can_change_password(): bool {
         return true;
     }
 
@@ -369,19 +389,16 @@ class auth_plugin_invitation extends auth_plugin_base {
      *
      * @return moodle_url|null
      */
-    function change_password_url(): ?moodle_url {
-        return null; // use default internal method
+    public function change_password_url(): ?moodle_url {
+        return null; // Use default internal method.
     }
 
     /**
      * Returns true if plugin allows resetting of internal password.
      *
-     * @return bool
+     * @return true
      */
-    function can_reset_password(): bool {
+    public function can_reset_password(): bool {
         return true;
     }
-
 }
-
-
