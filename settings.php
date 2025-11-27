@@ -77,6 +77,20 @@ if ($ADMIN->fulltree) {
     ));
     $settings->hide_if('auth_invitation/usernameprefix', 'auth_invitation/generateusername');
 
+    $settings->add(new admin_setting_configcheckbox(
+        'auth_invitation/showcityfieldonsignup',
+        get_string('showcityfieldonsignup', 'auth_invitation'),
+        get_string('showcityfieldonsignup_help', 'auth_invitation'),
+        0
+    ));
+
+    $settings->add(new admin_setting_configcheckbox(
+        'auth_invitation/showcountryfieldonsignup',
+        get_string('showcountryfieldonsignup', 'auth_invitation'),
+        get_string('showcountryfieldonsignup_help', 'auth_invitation'),
+        0
+    ));
+
     // Display locking / mapping of profile fields.
     $authplugin = get_auth_plugin('invitation');
     display_auth_lock_options(

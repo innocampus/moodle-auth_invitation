@@ -79,6 +79,8 @@ class login_signup_form extends moodleform implements renderable, templatable {
         }
         $email = $this->_customdata['email'];
 
+        $config = get_config('auth_invitation');
+
         $mform = $this->_form;
 
         $mform->addElement('html', html_writer::tag('p', get_string('registerhere', 'auth_invitation')));
@@ -109,7 +111,7 @@ class login_signup_form extends moodleform implements renderable, templatable {
         $mform->addElement('hidden', 'invitationtoken');
         $mform->setConstant('invitationtoken', $invitationtoken);
 
-        if (!get_config('auth_invitation', 'generateusername')) {
+        if (!$config->generateusername) {
             $mform->addElement('text', 'username', get_string('username'), 'maxlength="100" size="12" autocapitalize="none"');
             $mform->setType('username', PARAM_RAW);
             $mform->addRule('username', get_string('missingusername'), 'required', null, 'client');
@@ -148,21 +150,25 @@ class login_signup_form extends moodleform implements renderable, templatable {
             $mform->addRule($field, get_string($stringid), 'required', null, 'client');
         }
 
-        $mform->addElement('text', 'city', get_string('city'), 'maxlength="120" size="20"');
-        $mform->setType('city', core_user::get_property_type('city'));
-        if (!empty($CFG->defaultcity)) {
-            $mform->setDefault('city', $CFG->defaultcity);
+        if ($config->showcityfield) {
+            $mform->addElement('text', 'city', get_string('city'), 'maxlength="120" size="20"');
+            $mform->setType('city', core_user::get_property_type('city'));
+            if (!empty($CFG->defaultcity)) {
+                $mform->setDefault('city', $CFG->defaultcity);
+            }
         }
 
-        $country = get_string_manager()->get_list_of_countries();
-        $defaultcountry[''] = get_string('selectacountry');
-        $country = array_merge($defaultcountry, $country);
-        $mform->addElement('select', 'country', get_string('country'), $country);
+        if ($config->showcountryfield) {
+            $country = get_string_manager()->get_list_of_countries();
+            $defaultcountry[''] = get_string('selectacountry');
+            $country = array_merge($defaultcountry, $country);
+            $mform->addElement('select', 'country', get_string('country'), $country);
 
-        if (!empty($CFG->country)) {
-            $mform->setDefault('country', $CFG->country);
-        } else {
-            $mform->setDefault('country', '');
+            if (!empty($CFG->country)) {
+                $mform->setDefault('country', $CFG->country);
+            } else {
+                $mform->setDefault('country', '');
+            }
         }
 
         profile_signup_fields($mform);
