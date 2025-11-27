@@ -40,18 +40,18 @@ if ($ADMIN->fulltree) {
         []
     ));
 
-    // Regexes for allowed and prohibited email addresses.
-    $settings->add(new admin_setting_configtext(
-        'auth_invitation/allowedemailregex',
-        get_string('allowedemailregex', 'auth_invitation'),
-        get_string('allowedemailregex_help', 'auth_invitation'),
-        ''
+    // Patterns for allowed and prohibited email addresses.
+    $settings->add(new admin_setting_configtextarea(
+        'auth_invitation/allowedemailpatterns',
+        get_string('allowedemailpatterns', 'auth_invitation'),
+        get_string('allowedemailpatterns_help', 'auth_invitation'),
+        '*'
     ));
 
-    $settings->add(new admin_setting_configtext(
-        'auth_invitation/prohibitedemailregex',
-        get_string('prohibitedemailregex', 'auth_invitation'),
-        get_string('prohibitedemailregex_help', 'auth_invitation'),
+    $settings->add(new admin_setting_configtextarea(
+        'auth_invitation/prohibitedemailpatterns',
+        get_string('prohibitedemailpatterns', 'auth_invitation'),
+        get_string('prohibitedemailpatterns_help', 'auth_invitation'),
         ''
     ));
 

@@ -316,8 +316,10 @@ class auth_plugin_invitation extends auth_plugin_base {
     /**
      * Checks whether self-registration using this plugin is allowed for the user with the specified email address.
      *
-     * This first checks whether the email address is prohibited by the setting auth_invitation/prohibitedemailregex and then
-     * whether it is allowed by the setting auth_invitation/allowedemailregex.
+     * This first checks whether the email address is prohibited by the setting auth_invitation/prohibitedemailpatterns and then
+     * whether it is allowed by the setting auth_invitation/allowedemailpatterns.
+     *
+     * The function {@see fnmatch} is used to compare the provided email (in lower case) to the patterns specified in the settings.
      *
      * @param string $email The email address of the invited user.
      * @return bool Whether self-registration using this plugin is allowed.
@@ -325,13 +327,19 @@ class auth_plugin_invitation extends auth_plugin_base {
      */
     protected function is_allowed_email(string $email): bool {
         $config = get_config('auth_invitation');
-        if (!empty($config->prohibitedemailregex) && preg_match("/$config->prohibitedemailregex/i", $email)) {
-            return false;
+        $email = strtolower($email);
+        $splitpatterns = fn($patterns) => array_filter(array_map('trim', explode("\n", $patterns)));
+        foreach ($splitpatterns($config->prohibitedemailpatterns) as $prohibitedpattern) {
+            if (fnmatch($prohibitedpattern, $email)) {
+                return false;
+            }
         }
-        if (!empty($config->allowedemailregex) && !preg_match("/$config->allowedemailregex/i", $email)) {
-            return false;
+        foreach ($splitpatterns($config->allowedemailpatterns) as $allowedpattern) {
+            if (fnmatch($allowedpattern, $email)) {
+                return true;
+            }
         }
-        return true;
+        return false;
     }
 
     /**
