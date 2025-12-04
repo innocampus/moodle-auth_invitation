@@ -77,22 +77,23 @@ if ($ADMIN->fulltree) {
     ));
     $settings->hide_if('auth_invitation/usernameprefix', 'auth_invitation/generateusername');
 
-    $settings->add(new admin_setting_configcheckbox(
-        'auth_invitation/showcityfieldonsignup',
-        get_string('showcityfieldonsignup', 'auth_invitation'),
-        get_string('showcityfieldonsignup_help', 'auth_invitation'),
-        0
-    ));
-
-    $settings->add(new admin_setting_configcheckbox(
-        'auth_invitation/showcountryfieldonsignup',
-        get_string('showcountryfieldonsignup', 'auth_invitation'),
-        get_string('showcountryfieldonsignup_help', 'auth_invitation'),
-        0
-    ));
+    require_once($CFG->dirroot . '/user/editlib.php');
+    $defaultrequiredfields = useredit_get_required_name_fields();
+    $defaultenabledfields = array_merge($defaultrequiredfields, ['city', 'country']);
+    /** @var auth_plugin_invitation $authplugin */
+    $authplugin = get_auth_plugin('invitation');
+    foreach ($authplugin->get_signup_profile_field_definitions() as $field => $definition) {
+        if (isset($definition['choices'])) {
+            $setting = new admin_setting_configselect('auth_invitation/' . $definition['setting'], $definition['name'], '', '', $definition['choices']);
+        } else {
+            $setting = new admin_setting_configtext('auth_invitation/' . $definition['setting'], $definition['name'], '', '', $definition['type']);
+        }
+        $setting->set_enabled_flag_options(true, in_array($field, $defaultenabledfields));
+        $setting->set_required_flag_options(true, in_array($field, $defaultrequiredfields));
+        $settings->add($setting);
+    }
 
     // Display locking / mapping of profile fields.
-    $authplugin = get_auth_plugin('invitation');
     display_auth_lock_options(
         $settings,
         $authplugin->authtype,

@@ -409,4 +409,34 @@ class auth_plugin_invitation extends auth_plugin_base {
     public function can_reset_password(): bool {
         return true;
     }
+
+    /**
+     * @return array
+     * @throws \core\exception\coding_exception
+     * @throws coding_exception
+     * @throws dml_exception
+     */
+    public function get_signup_profile_field_definitions(): array {
+        $config = get_config('auth_invitation');
+        $signupfields = array_diff($this->userfields, ['email']);
+        $definitions = [];
+        foreach ($signupfields as $field) {
+            $definition = core_user::get_property_definition($field);
+            if ($field == 'lang') {
+                $fieldname = get_string('language');
+            } else {
+                $fieldname = get_string($field);
+            }
+            $definition['name'] = $fieldname;
+            $setting = "signup_$field";
+            $definition['setting'] = $setting;
+            $enabledsetting = "{$setting}_enabled";
+            $requiredsetting = "{$setting}_required";
+            $definition['default'] = $config->$setting ?: ($definition['default'] ?? '');
+            $definition['enabled'] = $config->$enabledsetting ?? false;
+            $definition['required'] = $config->$requiredsetting ?? false;
+            $definitions[$field] = $definition;
+        }
+        return $definitions;
+    }
 }

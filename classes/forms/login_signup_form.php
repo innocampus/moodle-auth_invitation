@@ -24,6 +24,7 @@
 
 namespace auth_invitation\forms;
 
+use auth_plugin_invitation;
 use core\exception\coding_exception;
 use core\output\renderer_base;
 use core_user;
@@ -139,35 +140,39 @@ class login_signup_form extends moodleform implements renderable, templatable {
         $mform->setConstant('email', $email);
         $mform->setForceLtr('email');
 
-        $namefields = useredit_get_required_name_fields();
-        foreach ($namefields as $field) {
-            $mform->addElement('text', $field, get_string($field), 'maxlength="100" size="30"');
-            $mform->setType($field, core_user::get_property_type('firstname'));
-            $stringid = 'missing' . $field;
-            if (!get_string_manager()->string_exists($stringid, 'moodle')) {
-                $stringid = 'required';
-            }
-            $mform->addRule($field, get_string($stringid), 'required', null, 'client');
+        $attributes = [
+            'city' => 'maxlength="120" size="20"'
+        ];
+        foreach (\core_user\fields::get_name_fields() as $field) {
+            $attributes[$field] = 'maxlength="100" size="30"';
         }
+        // TODO other attributes
 
-        if ($config->showcityfield) {
-            $mform->addElement('text', 'city', get_string('city'), 'maxlength="120" size="20"');
-            $mform->setType('city', core_user::get_property_type('city'));
-            if (!empty($CFG->defaultcity)) {
-                $mform->setDefault('city', $CFG->defaultcity);
-            }
-        }
-
-        if ($config->showcountryfield) {
-            $country = get_string_manager()->get_list_of_countries();
-            $defaultcountry[''] = get_string('selectacountry');
-            $country = array_merge($defaultcountry, $country);
-            $mform->addElement('select', 'country', get_string('country'), $country);
-
-            if (!empty($CFG->country)) {
-                $mform->setDefault('country', $CFG->country);
-            } else {
-                $mform->setDefault('country', '');
+        /** @var auth_plugin_invitation $authplugin */
+        $authplugin = get_auth_plugin('invitation');
+        foreach ($authplugin->get_signup_profile_field_definitions() as $field => $definition) {
+            if ($definition['enabled']) {
+                if (isset($definition['choices'])) {
+                    $mform->addElement('select', $field, $definition['name'], $definition['choices'], $attributes[$field] ?? '');
+                } else {
+                    $mform->addElement('text', $field, $definition['name'], $attributes[$field] ?? '');
+                }
+                if (!empty($definition['type'])) {
+                    $mform->setType($field, $definition['type']);
+                }
+                if (!empty($definition['default'])) {
+                    $mform->setDefault($field, $definition['default']);
+                }
+                if ($definition['required']) {
+                    $stringid = 'missing' . $field;
+                    if (!get_string_manager()->string_exists($stringid, 'moodle')) {
+                        $stringid = 'required';
+                    }
+                    $mform->addRule($field, get_string($stringid), 'required', null, 'client');
+                }
+            } else if (!empty($definition['default'])) {
+                $mform->addElement('hidden', $field);
+                $mform->setConstant($field, $definition['default']);
             }
         }
 

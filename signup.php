@@ -83,6 +83,14 @@ if ($signupform->is_cancelled()) {
     // The field $user->auth is set to $CFG->registerauth by signup_setup_new_user(). We need to override that.
     $user->auth = 'invitation';
 
+    // Non-required name fields are initialized to empty in signup_setup_new_user(), so we need to copy their value again.
+    $data = $signupform->get_data();
+    foreach (\core_user\fields::get_name_fields() as $field) {
+        if (isset($data->$field)) {
+            $user->$field = $data->$field;
+        }
+    }
+
     // Plugins can perform post sign up actions once data has been validated.
     core_login_post_signup_requests($user);
 
