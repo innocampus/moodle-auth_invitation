@@ -99,7 +99,7 @@ if ($ADMIN->fulltree) {
         'auth_invitation/usernameprefix',
         get_string('usernameprefix', 'auth_invitation'),
         get_string('usernameprefix_help', 'auth_invitation'),
-        'temp'
+        'inviteduser'
     ));
     $settings->hide_if('auth_invitation/usernameprefix', 'auth_invitation/generateusername');
 
