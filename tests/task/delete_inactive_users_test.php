@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Tests for the task to delete inactive temporary users.
+ * Tests for the task to delete inactive users.
  *
  * @package    auth_invitation
  * @copyright  2025 Lars Bonczek (@innoCampus, TU Berlin)
@@ -29,27 +29,27 @@ use dml_exception;
 use moodle_exception;
 
 /**
- * Tests for the {@see delete_temporary_users} class.
+ * Tests for the {@see delete_inactive_users} class.
  *
  * @package    auth_invitation
  * @copyright  2025 Lars Bonczek (@innoCampus, TU Berlin)
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- * @coversDefaultClass \auth_invitation\task\delete_temporary_users
+ * @coversDefaultClass \auth_invitation\task\delete_inactive_users
  */
-final class delete_temporary_users_test extends \advanced_testcase {
+final class delete_inactive_users_test extends \advanced_testcase {
     /**
-     * Test for the {@see delete_temporary_users::get_name()} function.
+     * Test for the {@see delete_inactive_users::get_name()} function.
      *
      * @covers ::get_name
      * @throws coding_exception
      */
     public function test_get_name(): void {
-        $task = new delete_temporary_users();
-        $this->assertEquals('Delete inactive temporary users', $task->get_name());
+        $task = new delete_inactive_users();
+        $this->assertEquals('Delete inactive users', $task->get_name());
     }
 
     /**
-     * Test for the {@see delete_temporary_users::execute()} function.
+     * Test for the {@see delete_inactive_users::execute()} function.
      *
      * @dataProvider execute_provider
      * @covers ::execute
@@ -85,7 +85,7 @@ final class delete_temporary_users_test extends \advanced_testcase {
         foreach ($users as $user) {
             $userobj = $this->getDataGenerator()->create_user($user);
             if (isset($user['deletiontime'])) {
-                set_user_preference(delete_temporary_users::ACCOUNT_DELETION_TIME_USER_PREFERENCE, $user['deletiontime'], $userobj);
+                set_user_preference(delete_inactive_users::ACCOUNT_DELETION_TIME_USER_PREFERENCE, $user['deletiontime'], $userobj);
             }
             if ($userobj->deleted) {
                 $deletedbeforeids[] = $userobj->id;
@@ -110,7 +110,7 @@ final class delete_temporary_users_test extends \advanced_testcase {
         set_config('autodeleteusersafterdays', $deletiondays, 'auth_invitation');
         set_config('autodeleteusersnoticedays', $notificationdays, 'auth_invitation');
 
-        $task = new delete_temporary_users();
+        $task = new delete_inactive_users();
         $task->set_timestarted($time);
         $task->execute();
 
@@ -146,7 +146,7 @@ final class delete_temporary_users_test extends \advanced_testcase {
                     EOD,
                     $message->body
                 );
-                $prefname = delete_temporary_users::ACCOUNT_DELETION_TIME_USER_PREFERENCE;
+                $prefname = delete_inactive_users::ACCOUNT_DELETION_TIME_USER_PREFERENCE;
                 $this->assertEquals($time + DAYSECS * $notificationdays, get_user_preferences($prefname, null, $user));
             }
             if (in_array($user->id, $expecteddeletedids)) {
@@ -410,7 +410,7 @@ final class delete_temporary_users_test extends \advanced_testcase {
     }
 
     /**
-     * Test for the {@see delete_temporary_users::execute()} function when automatic deletion is disabled.
+     * Test for the {@see delete_inactive_users::execute()} function when automatic deletion is disabled.
      *
      * @covers ::execute
      * @throws coding_exception
@@ -419,12 +419,12 @@ final class delete_temporary_users_test extends \advanced_testcase {
      */
     public function test_execute_when_disabled(): void {
         $this->resetAfterTest();
-        $this->expectOutputString("Automatic deletion of temporary users is disabled. " .
+        $this->expectOutputString("Automatic deletion of inactive users is disabled. " .
             "Please enable the auth_invitation/autodeleteusers setting to activate this task.\n");
 
         set_config('autodeleteusers', false, 'auth_invitation');
 
-        $task = new delete_temporary_users();
+        $task = new delete_inactive_users();
         $task->execute();
     }
 }

@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Task to automatically delete inactive temporary users.
+ * Task to automatically delete inactive users.
  *
  * @package    auth_invitation
  * @copyright  2025 Lars Bonczek (@innoCampus, TU Berlin)
@@ -31,13 +31,13 @@ use moodle_exception;
 use stdClass;
 
 /**
- * Task to automatically delete inactive temporary users.
+ * Task to automatically delete inactive users.
  *
  * @package    auth_invitation
  * @copyright  2025 Lars Bonczek (@innoCampus, TU Berlin)
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class delete_temporary_users extends scheduled_task {
+class delete_inactive_users extends scheduled_task {
     /** @var string Name of the user preference that stores the scheduled account deletion time. */
     public const ACCOUNT_DELETION_TIME_USER_PREFERENCE = 'auth_invitation_account_deletion_time';
 
@@ -51,7 +51,7 @@ class delete_temporary_users extends scheduled_task {
      * @throws coding_exception
      */
     public function get_name(): string {
-        return get_string('deletetemporaryusers', 'auth_invitation');
+        return get_string('deleteinactiveusers', 'auth_invitation');
     }
 
     /**
@@ -65,7 +65,7 @@ class delete_temporary_users extends scheduled_task {
         $this->config = get_config('auth_invitation');
 
         if (!$this->config->autodeleteusers) {
-            mtrace('Automatic deletion of temporary users is disabled. ' .
+            mtrace('Automatic deletion of inactive users is disabled. ' .
                     'Please enable the auth_invitation/autodeleteusers setting to activate this task.');
             return;
         }

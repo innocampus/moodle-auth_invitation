@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Auth plugin for temporary users that were invited using enrol_invitation.
+ * Auth plugin for users that were invited using enrol_invitation.
  *
  * @package    auth_invitation
  * @copyright  2025 Lars Bonczek (@innoCampus, TU Berlin)
@@ -29,7 +29,7 @@ defined('MOODLE_INTERNAL') || die();
 require_once($CFG->libdir . '/authlib.php');
 
 /**
- * Auth plugin for temporary users that were invited using enrol_invitation.
+ * Auth plugin for users that were invited using enrol_invitation.
  *
  * Users can only register using this plugin when they have been invited to a course using enrol_invitation.
  *

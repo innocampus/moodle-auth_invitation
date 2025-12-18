@@ -27,7 +27,7 @@ defined('MOODLE_INTERNAL') || die();
 // List of tasks.
 $tasks = [
     [
-        'classname' => 'auth_invitation\task\delete_temporary_users',
+        'classname' => 'auth_invitation\task\delete_inactive_users',
         'blocking' => 1,
         'minute' => 0,
         'hour' => 20,
