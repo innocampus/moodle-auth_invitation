@@ -36,14 +36,14 @@ use moodle_exception;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  * @coversDefaultClass \auth_invitation\task\delete_temporary_users
  */
-class delete_temporary_users_test extends \advanced_testcase {
+final class delete_temporary_users_test extends \advanced_testcase {
     /**
      * Test for the {@see delete_temporary_users::get_name()} function.
      *
      * @covers ::get_name
      * @throws coding_exception
      */
-    public function test_get_name() {
+    public function test_get_name(): void {
         $task = new delete_temporary_users();
         $this->assertEquals('Delete inactive temporary users', $task->get_name());
     }
@@ -53,15 +53,31 @@ class delete_temporary_users_test extends \advanced_testcase {
      *
      * @dataProvider execute_provider
      * @covers ::execute
+     * @param int $time Task execution time.
+     * @param int $deletiondays Value for the auth_invitation/autodeleteusersafterdays setting.
+     * @param int $notificationdays Value for the auth_invitation/autodeleteusersnoticedays setting.
+     * @param array[] $users Users to create for the test. The value of the `deletiontime` field will be stored in the account
+     * deletion time user preference.
+     * @param string $expectedoutputregex Regex for the expected output of the task.
+     * @param array $expectednotified List of users who we expect to receive a notice, with the usernames as keys and the expected
+     * "deletion after"-dates printed in the emails as values.
+     * @param array $expecteddeleted List of usernames of the users who we expect to be deleted.
      * @throws coding_exception
      * @throws dml_exception
      * @throws moodle_exception
      */
-    public function test_execute(int $time, int $deletiondays, int $notificationdays, array $users, string $expectedoutput,
-        array $expectednotified, array $expecteddeleted) {
+    public function test_execute(
+            int $time,
+            int $deletiondays,
+            int $notificationdays,
+            array $users,
+            string $expectedoutputregex,
+            array $expectednotified,
+            array $expecteddeleted
+    ): void {
         global $DB;
         $this->resetAfterTest();
-        $this->expectOutputRegex($expectedoutput);
+        $this->expectOutputRegex($expectedoutputregex);
 
         $deletedbeforeids = [];
         $expecteddeletedids = [];
@@ -116,16 +132,16 @@ class delete_temporary_users_test extends \advanced_testcase {
                 $this->assertStringContainsStringIgnoringLineEndings(
                     <<<EOD
                     Hi $encodedname,
-                    
+
                     Your account at 'PHPUnit test site' will be deleted automatically if you do
                     not log in to the site until $expecteddeletionafter.
-                    
+
                     Note that you will not be able to access your account after this date. This
                     includes any courses you may be enrolled in as well as your submissions and
                     grades in these courses.
 
                     To stop your account from being deleted, please log in here until $expecteddeletionafter:
-                    
+
                     https://www.example.com/moodle/login/index.php
                     EOD,
                     $message->body
@@ -143,10 +159,10 @@ class delete_temporary_users_test extends \advanced_testcase {
                 $this->assertStringContainsStringIgnoringLineEndings(
                     <<<EOD
                     Hi $encodedname,
-                    
+
                     Your account at 'PHPUnit test site' was deleted automatically due to
                     inactivity.
-                    
+
                     If this was done in error, please contact us immediately by responding to
                     this email. Otherwise, you can ignore this email.
                     EOD,
@@ -193,43 +209,44 @@ class delete_temporary_users_test extends \advanced_testcase {
                         'username' => 'temp1',
                         'auth' => 'invitation',
                         'lastaccess' => 1765289895 - DAYSECS * 5, // Last access not more than 80 days ago.
-                        // -> Not notified.
+                        // Not notified.
                     ],
                     [
                         'username' => 'temp2',
                         'auth' => 'invitation',
                         'lastaccess' => 1765289895 - DAYSECS * 80, // Last access not more than 80 days ago.
-                        // -> Not notified.
+                        // Not notified.
                     ],
                     [
                         'username' => 'temp3',
                         'auth' => 'invitation',
                         'lastaccess' => 1765289895 - DAYSECS * 80 - 1, // Last access more than 80 days ago.
                         'timezone' => 'Europe/Berlin',
-                        // -> Notified.
+                        // Notified.
                     ],
                     [
                         'username' => 'temp4',
                         'auth' => 'invitation',
                         'lastaccess' => 1765289895 - DAYSECS * 80 - 1, // Last access more than 80 days ago.
-                        'timezone' => 'Australia/Sydney', // Different timezone -> different date in notification.
-                        // -> Notified.
+                        'timezone' => 'Australia/Sydney', // Different timezone different date in notification.
+                        // Notified.
                     ],
                     [
                         'username' => 'temp5',
                         'auth' => 'invitation',
                         'lastaccess' => 1765289895 - DAYSECS * 150, // Last access more than 80 days ago.
                         'timezone' => 'Europe/Berlin',
-                        // -> Notified.
+                        // Notified.
                     ],
                     [
                         'username' => 'temp6',
                         'auth' => 'invitation',
                         'lastaccess' => 1765289895 - DAYSECS * 150, // Last access more than 80 days ago.
                         'deleted' => 1, // Already deleted.
-                        // -> Not notified.
+                        // Not notified.
                     ],
                 ],
+                // phpcs:disable moodle.Files.LineLength.TooLong
                 <<<EOD
                 /^Notifying 3 users about the pending deletion of their accounts\.\.\.
                 User temp3 with ID \d+ \(last seen at 2025-09-20T22:18:14\+08:00\) was notified about the pending deletion of their account after 2025-12-29T22:18:15\+08:00\.
@@ -239,6 +256,7 @@ class delete_temporary_users_test extends \advanced_testcase {
                 Deleting 0 users\.\.\.
                 0 of 0 users were successfully deleted\.$/
                 EOD, // Task output regex.
+                // phpcs:enable moodle.Files.LineLength.TooLong
                 ['temp3' => '28/12/25', 'temp4' => '29/12/25', 'temp5' => '28/12/25'], // Notified users.
                 [], // Deleted users.
             ],
@@ -251,35 +269,35 @@ class delete_temporary_users_test extends \advanced_testcase {
                         'username' => 'temp1',
                         'auth' => 'invitation',
                         'lastaccess' => 1765289895 - DAYSECS * 5, // Last access not more than 100 days ago.
-                        // -> Not deleted.
+                        // Not deleted.
                     ],
                     [
                         'username' => 'temp2',
                         'auth' => 'invitation',
                         'lastaccess' => 1765289895 - DAYSECS * 100, // Last access not more than 100 days ago.
                         'deletiontime' => 1765289895, // Deletion scheduled right now.
-                        // -> Not deleted.
+                        // Not deleted.
                     ],
                     [
                         'username' => 'temp3',
                         'auth' => 'invitation',
                         'lastaccess' => 1765289895 - DAYSECS * 100 - 1, // Last access just more than 100 days ago.
                         'deletiontime' => 1765289895, // Deletion scheduled right now.
-                        // -> Deleted.
+                        // Deleted.
                     ],
                     [
                     'username' => 'temp4',
                         'auth' => 'invitation',
                         'lastaccess' => 1765289895 - DAYSECS * 150, // Last access more than 100 days ago.
                         'deletiontime' => 1765289895 + 1, // Deletion scheduled in the future.
-                        // -> Not deleted.
+                        // Not deleted.
                     ],
                     [
                         'username' => 'temp5',
                         'auth' => 'invitation',
                         'lastaccess' => 1765289895 - DAYSECS * 150, // Last access more than 100 days ago.
                         'deletiontime' => 1765289895 - DAYSECS * 50, // Deletion scheduled in the past.
-                        // -> Deleted.
+                        // Deleted.
                     ],
                 ],
                 <<<EOD
@@ -303,7 +321,7 @@ class delete_temporary_users_test extends \advanced_testcase {
                         'auth' => 'invitation',
                         'lastaccess' => 1765289895 - DAYSECS * 15 - 1, // Last access more than 15 days ago.
                         'deletiontime' => 1765289895 + DAYSECS * 5 - 1, // Deletion scheduled 20 days after last access.
-                        // -> Not notified.
+                        // Not notified.
                     ],
                     [
                         'username' => 'temp2',
@@ -311,7 +329,7 @@ class delete_temporary_users_test extends \advanced_testcase {
                         'lastaccess' => 1765289895 - DAYSECS * 15 - 1, // Last access more than 15 days ago.
                         'timezone' => 'Europe/London',
                         'deletiontime' => 1765289895 + DAYSECS * 5 - 2, // Deletion scheduled less than 20 days after last access.
-                        // -> Notified (again).
+                        // Notified (again).
                     ],
                     [
                         'username' => 'temp3',
@@ -319,24 +337,25 @@ class delete_temporary_users_test extends \advanced_testcase {
                         'lastaccess' => 1765289895 - DAYSECS * 15 - 1, // Last access more than 15 days ago.
                         'timezone' => 'Europe/London',
                         'deletiontime' => 1765289895 - DAYSECS * 5 - 2, // Deletion scheduled before last access.
-                        // -> Notified (again).
+                        // Notified (again).
                     ],
                     [
                         'username' => 'temp4',
                         'auth' => 'invitation',
                         'lastaccess' => 1765289895 - DAYSECS * 20 - 1, // Last access more than 20 days ago.
                         'deletiontime' => 1765289895 - 2, // Deletion scheduled less than 20 days after last access.
-                        // -> Not deleted.
-                        // -> Notified (again).
+                        // Not deleted.
+                        // Notified (again).
                     ],
                     [
                         'username' => 'temp5',
                         'auth' => 'invitation',
                         'lastaccess' => 1765289895 - DAYSECS * 20 - 1, // Last access more than 20 days ago.
                         'deletiontime' => 1765289895 - 1, // Deletion scheduled 20 days after last access.
-                        // -> Deleted.
+                        // Deleted.
                     ],
                 ],
+                // phpcs:disable moodle.Files.LineLength.TooLong
                 <<<EOD
                 /^Notifying 3 users about the pending deletion of their accounts\.\.\.
                 User temp2 with ID \d+ \(last seen at 2025-11-24T22:18:14\+08:00\) was notified about the pending deletion of their account after 2025-12-14T22:18:15\+08:00\.
@@ -347,6 +366,7 @@ class delete_temporary_users_test extends \advanced_testcase {
                 User temp5 with ID \d+ \(last seen at 2025-11-19T22:18:14\+08:00\) was deleted\.
                 1 of 1 users were successfully deleted\.$/
                 EOD, // Task output regex.
+                // phpcs:enable moodle.Files.LineLength.TooLong
                 ['temp2' => '13/12/25', 'temp3' => '13/12/25', 'temp4' => '13/12/25'], // Notified users.
                 ['temp5'], // Deleted users.
             ],
@@ -360,20 +380,20 @@ class delete_temporary_users_test extends \advanced_testcase {
                         'auth' => 'invitation',
                         'lastaccess' => 1765289895 - DAYSECS * 1, // Last access not more than 1 day ago.
                         'deletiontime' => 1765289895, // Deletion scheduled now (ignored).
-                        // -> Not deleted.
+                        // Not deleted.
                     ],
                     [
                         'username' => 'temp2',
                         'auth' => 'invitation',
                         'lastaccess' => 1765289895 - DAYSECS * 1 - 1, // Last access more than 1 day ago.
                         'deletiontime' => 1765289895 + 1, // Deletion scheduled in the future (ignored).
-                        // -> Deleted.
+                        // Deleted.
                     ],
                     [
                         'username' => 'temp3',
                         'auth' => 'invitation',
                         'lastaccess' => 1765289895 - DAYSECS * 2, // Last access more than 1 day ago.
-                        // -> Deleted.
+                        // Deleted.
                     ],
                 ],
                 <<<EOD
@@ -397,7 +417,7 @@ class delete_temporary_users_test extends \advanced_testcase {
      * @throws dml_exception
      * @throws moodle_exception
      */
-    public function test_execute_when_disabled() {
+    public function test_execute_when_disabled(): void {
         $this->resetAfterTest();
         $this->expectOutputString("Automatic deletion of temporary users is disabled. " .
             "Please enable the auth_invitation/autodeleteusers setting to activate this task.\n");
