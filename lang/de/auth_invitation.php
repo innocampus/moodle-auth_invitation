@@ -22,11 +22,40 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+$string['accountdeletedsubject'] = '{$a->sitefullname}: Nutzerkonto gelöscht';
+$string['accountdeleted'] = 'Guten Tag {$a->fullname},
+
+Ihr Nutzerkonto für \'{$a->sitefullname}\' wurde auf Grund von Inaktivität automatisch gelöscht.
+
+Falls dies nicht beabsichtigt war, kontaktieren Sie uns bitte umgehend, indem Sie auf diese E-Mail antworten.
+
+Mit freundlichen Grüßen,
+{$a->admin}';
+$string['accountdeletionnoticesubject'] = '{$a->sitefullname}: Löschung Ihres Nutzerkontos in {$a->deletionindays} Tagen';
+$string['accountdeletionnotice'] = 'Guten Tag {$a->fullname},
+
+Ihr Nutzerkonto für \'{$a->sitefullname}\' wird automatisch gelöscht, sofern Sie sich nicht bis zum {$a->deletionafter} auf der Seite anmelden.
+
+Bitte beachten Sie, dass Sie nach diesem Datum nicht mehr auf Ihr Nutzerkonto zugreifen können. Dies betrifft auch etwaige Kurse, in die Sie eingeschrieben sind, sowie all Ihre Abgaben und Bewertungen in diesen Kursen.
+
+Um zu verhindern, dass Ihr Nutzerkonto gelöscht wird, melden Sie sich bitte bis zum {$a->deletionafter} hier an:
+
+{$a->loginurl}
+
+Falls Sie Fragen haben, wenden Sie sich bitte an:
+{$a->admin}';
 $string['allowedemailpatterns'] = 'Erlaubte E-Mail-Adressen';
 $string['allowedemailpatterns_help'] = 'Geben Sie hier alle E-Mail-Adressen an, für die eine Registrierung mit diesem Plugin möglich ist. Jede Zeile enthält eine E-Mail-Adresse oder ein Muster, welches mehreren E-Mail-Adressen entspricht. Sie können die Platzhalter <code>*</code> (beliebige Zeichenkette) und <code>?</code> (beliebiges Zeichen) sowie Charakter-Klassen im Format <code>[0-9]</code> (beliebige Ziffer), <code>[a-z]</code> (ein Buchstabe im Bereich a-z), <code>[!abc]</code> (ein beliebiges Zeichen <i>außer</i> a, b und c). Sonderzeichen können mit <code>\</code> escaped werden. E-Mail-Adressen werden vor dem Abgleich in Kleinschrift konvertiert. Dieses Feld hat eine niedrigere Priorität als das Feld auth_invitation/prohibitedemailpatterns.';
 $string['alreadyregistered'] = 'Ich habe bereits ein Nutzerkonto';
 $string['assignedroles'] = 'Rollen für neue Nutzer/innen';
 $string['assignedroles_help'] = 'Hier ausgewählte Rollen werden automatisch im Systemkontext allen Nutzer/innen zugewiesen, die sich mit diesem Plugin registrieren. Dies kann genutzt werden, um allen eingeladenen Nutzer/innen automatisch eine Rolle zuzuweisen, die sie von anderen Nutzer/innen unterscheidet und ihnen bestimmte Rechte entzieht (z.B. die Selbsteinschreibung in Kurse).';
+$string['autodeleteusers'] = 'Inaktive Nutzerkonten automatisch löschen';
+$string['autodeleteusers_help'] = 'Geben Sie an, ob Nutzerkonten, die sich mit Hilfe dieses Plugins registriert haben, automatisch gelöscht werden sollen, wenn sie für eine vorgegebene Anzahl an Tagen nicht auf die Seite zugegriffen haben.';
+$string['autodeleteusersafterdays'] = 'Automatisch löschen nach (Tage)';
+$string['autodeleteusersafterdays_help'] = 'Anzahl Tage, die seit dem letzten Zugriff auf die Seite vergangen sein muss, damit ein Nutzerkonto automatisch gelöscht wird.';
+$string['autodeleteusersnoticedays'] = 'Benachrichtigungszeitraum (Tage)';
+$string['autodeleteusersnoticedays_help'] = 'Anzahl Tage vor der Löschung, bei der die Nutzenden per E-Mail über die bevorstehende Löschung ihres Nutzerkontos benachrichtigt werden. Wenn Sie dieses Feld auf 0 setzen, werden keine Benachrichtigungen versandt.';
+$string['deletetemporaryusers'] = 'Inaktive temporäre Nutzerkonten löschen';
 $string['description'] = 'Eine Registrierung mit diesem Plugin ist für Nutzende nur dann möglich, wenn diese mittels der Einschreibemethode "Einladung" (enrol_invitation) in einen Kurs eingeladen wurden.';
 $string['generateusername'] = 'Anmeldenamen automatisch generieren';
 $string['generateusername_help'] = 'Aktivieren Sie diese Einstellung, um neuen Nutzer/innen einen automatisch generierten Anmeldenamen zuzuweisen. Wenn diese Option aktiviert ist, müssen Nutzer/innen bei der Registrierung keinen Anmeldenamen angeben. Wenn sie nicht aktiviert ist, kann der Anmeldename frei gewählt werden.<br> <strong>Wenn diese Einstellung aktiviert ist, bekommen Nutzer/innen automatisch einen Anmeldenamen zugewiesen, kennen diesen aber nicht und können sich deshalb nicht damit anmelden. Bitte erlauben Sie in diesem Fall somit den Login via E-Mail-Adresse, indem Sie die Systemeinstellung authloginviaemail aktivieren.</strong>';

@@ -22,11 +22,40 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+$string['accountdeletedsubject'] = '{$a->sitefullname}: account deleted';
+$string['accountdeleted'] = 'Hi {$a->firstname},
+
+Your account at \'{$a->sitefullname}\' was deleted automatically due to inactivity.
+
+If this was done in error, please contact us immediately by responding to this email. Otherwise, you can ignore this email.
+
+Sincerely,
+{$a->admin}';
+$string['accountdeletionnoticesubject'] = '{$a->sitefullname}: account deletion in {$a->deletionindays} days';
+$string['accountdeletionnotice'] = 'Hi {$a->firstname},
+
+Your account at \'{$a->sitefullname}\' will be deleted automatically if you do not log in to the site until {$a->deletionafter}.
+
+Note that you will not be able to access your account after this date. This includes any courses you may be enrolled in as well as your submissions and grades in these courses.
+
+To stop your account from being deleted, please log in here until {$a->deletionafter}:
+
+{$a->loginurl}
+
+If you need help, please contact the site administrator,
+{$a->admin}';
 $string['allowedemailpatterns'] = 'Allowed email addresses';
 $string['allowedemailpatterns_help'] = 'Specify all email addresses for which signing up using this plugin is allowed. Each row must contain one email address or a pattern matching multiple email addresses. You can use the wildcards <code>*</code> (any string) and <code>?</code> (any character) as well as character classes in the format <code>[0-9]</code> (any digit), <code>[a-z]</code> (a character in the range a-z), <code>[!abc]</code> (any character <i>except</i> a, b, and c). Special characters can be escaped using <code>\</code>. Email addresses are converted to lower case before comparison. The setting auth_invitation/prohibitedemailpatterns takes precedence over this.';
 $string['alreadyregistered'] = 'Ich habe bereits ein Nutzerkonto';
 $string['assignedroles'] = 'Roles assigned to new users';
 $string['assignedroles_help'] = 'Roles selected here are automatically assigned in the system context to all users who register using this plugin. This can be used to assign a role to invited users which distinguishes them from other users and prohibits certain permissions (e.g. self-enrolment into courses).';
+$string['autodeleteusers'] = 'Auto-delete inactive users';
+$string['autodeleteusers_help'] = 'Specify whether users who have signed up using this plugin should automatically be deleted if they do not access the site for a predefined number of days.';
+$string['autodeleteusersafterdays'] = 'Auto-delete after (days)';
+$string['autodeleteusersafterdays_help'] = 'Number of days which must have passed since a user\'s last access to the site for the user to be automatically deleted.';
+$string['autodeleteusersnoticedays'] = 'Notification time (days)';
+$string['autodeleteusersnoticedays_help'] = 'Number of days before deletion at which the user is notified via email about the pending deletion of their account. Set to 0 to disable notifications.';
+$string['deletetemporaryusers'] = 'Delete inactive temporary users';
 $string['description'] = 'Users can only register using this plugin when they have been invited to a course using the enrolment method "Invitation" (enrol_invitation).';
 $string['generateusername'] = 'Automatically generate usernames';
 $string['generateusername_help'] = 'Activate this setting to automatically generate and assign a username to newly registered users. When this option is active, user do not need to specify a username in the sign up form. When it is not active, they may freely choose a username.<br> <strong>When this setting is active, users are automatically assigned a username, but they do not know it and thus cannot log in using it. Therefore, please make sure to allow the login via email address in this case by activating the system setting authloginviaemail.</strong>';

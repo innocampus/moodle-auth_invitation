@@ -55,6 +55,32 @@ if ($ADMIN->fulltree) {
         ''
     ));
 
+    // Settings for automatic user deletion.
+    $settings->add(new admin_setting_configcheckbox(
+        'auth_invitation/autodeleteusers',
+        get_string('autodeleteusers', 'auth_invitation'),
+        get_string('autodeleteusers_help', 'auth_invitation'),
+        0
+    ));
+
+    $settings->add(new admin_setting_configtext(
+        'auth_invitation/autodeleteusersafterdays',
+        get_string('autodeleteusersafterdays', 'auth_invitation'),
+        get_string('autodeleteusersafterdays_help', 'auth_invitation'),
+        180,
+        PARAM_INT
+    ));
+    $settings->hide_if('auth_invitation/autodeleteusersafterdays', 'auth_invitation/autodeleteusers');
+
+    $settings->add(new admin_setting_configtext(
+        'auth_invitation/autodeleteusersnoticedays',
+        get_string('autodeleteusersnoticedays', 'auth_invitation'),
+        get_string('autodeleteusersnoticedays_help', 'auth_invitation'),
+        14,
+        PARAM_INT
+    ));
+    $settings->hide_if('auth_invitation/autodeleteusersnoticedays', 'auth_invitation/autodeleteusers');
+
     // Settings for sign up form.
     $settings->add(new admin_setting_heading(
         'auth_invitation/signupsettings',
