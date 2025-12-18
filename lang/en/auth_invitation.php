@@ -22,7 +22,6 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-$string['accountdeletedsubject'] = '{$a->sitefullname}: account deleted';
 $string['accountdeleted'] = 'Hi {$a->firstname},
 
 Your account at \'{$a->sitefullname}\' was deleted automatically due to inactivity.
@@ -31,7 +30,7 @@ If this was done in error, please contact us immediately by responding to this e
 
 Sincerely,
 {$a->admin}';
-$string['accountdeletionnoticesubject'] = '{$a->sitefullname}: account deletion in {$a->deletionindays} days';
+$string['accountdeletedsubject'] = '{$a->sitefullname}: account deleted';
 $string['accountdeletionnotice'] = 'Hi {$a->firstname},
 
 Your account at \'{$a->sitefullname}\' will be deleted automatically if you do not log in to the site until {$a->deletionafter}.
@@ -44,6 +43,7 @@ To stop your account from being deleted, please log in here until {$a->deletiona
 
 If you need help, please contact the site administrator,
 {$a->admin}';
+$string['accountdeletionnoticesubject'] = '{$a->sitefullname}: account deletion in {$a->deletionindays} days';
 $string['allowedemailpatterns'] = 'Allowed email addresses';
 $string['allowedemailpatterns_help'] = 'Specify all email addresses for which signing up using this plugin is allowed. Each row must contain one email address or a pattern matching multiple email addresses. You can use the wildcards <code>*</code> (any string) and <code>?</code> (any character) as well as character classes in the format <code>[0-9]</code> (any digit), <code>[a-z]</code> (a character in the range a-z), <code>[!abc]</code> (any character <i>except</i> a, b, and c). Special characters can be escaped using <code>\</code>. Email addresses are converted to lower case before comparison. The setting auth_invitation/prohibitedemailpatterns takes precedence over this.';
 $string['alreadyregistered'] = 'Ich habe bereits ein Nutzerkonto';

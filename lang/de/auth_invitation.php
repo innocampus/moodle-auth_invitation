@@ -22,7 +22,6 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-$string['accountdeletedsubject'] = '{$a->sitefullname}: Nutzerkonto gelöscht';
 $string['accountdeleted'] = 'Guten Tag {$a->fullname},
 
 Ihr Nutzerkonto für \'{$a->sitefullname}\' wurde auf Grund von Inaktivität automatisch gelöscht.
@@ -31,7 +30,7 @@ Falls dies nicht beabsichtigt war, kontaktieren Sie uns bitte umgehend, indem Si
 
 Mit freundlichen Grüßen,
 {$a->admin}';
-$string['accountdeletionnoticesubject'] = '{$a->sitefullname}: Löschung Ihres Nutzerkontos in {$a->deletionindays} Tagen';
+$string['accountdeletedsubject'] = '{$a->sitefullname}: Nutzerkonto gelöscht';
 $string['accountdeletionnotice'] = 'Guten Tag {$a->fullname},
 
 Ihr Nutzerkonto für \'{$a->sitefullname}\' wird automatisch gelöscht, sofern Sie sich nicht bis zum {$a->deletionafter} auf der Seite anmelden.
@@ -44,6 +43,7 @@ Um zu verhindern, dass Ihr Nutzerkonto gelöscht wird, melden Sie sich bitte bis
 
 Falls Sie Fragen haben, wenden Sie sich bitte an:
 {$a->admin}';
+$string['accountdeletionnoticesubject'] = '{$a->sitefullname}: Löschung Ihres Nutzerkontos in {$a->deletionindays} Tagen';
 $string['allowedemailpatterns'] = 'Erlaubte E-Mail-Adressen';
 $string['allowedemailpatterns_help'] = 'Geben Sie hier alle E-Mail-Adressen an, für die eine Registrierung mit diesem Plugin möglich ist. Jede Zeile enthält eine E-Mail-Adresse oder ein Muster, welches mehreren E-Mail-Adressen entspricht. Sie können die Platzhalter <code>*</code> (beliebige Zeichenkette) und <code>?</code> (beliebiges Zeichen) sowie Charakter-Klassen im Format <code>[0-9]</code> (beliebige Ziffer), <code>[a-z]</code> (ein Buchstabe im Bereich a-z), <code>[!abc]</code> (ein beliebiges Zeichen <i>außer</i> a, b und c). Sonderzeichen können mit <code>\</code> escaped werden. E-Mail-Adressen werden vor dem Abgleich in Kleinschrift konvertiert. Dieses Feld hat eine niedrigere Priorität als das Feld auth_invitation/prohibitedemailpatterns.';
 $string['alreadyregistered'] = 'Ich habe bereits ein Nutzerkonto';

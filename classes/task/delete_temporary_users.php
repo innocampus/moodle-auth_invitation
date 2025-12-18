@@ -38,12 +38,16 @@ use stdClass;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class delete_temporary_users extends scheduled_task {
+    /** @var string Name of the user preference that stores the scheduled account deletion time. */
     public const ACCOUNT_DELETION_TIME_USER_PREFERENCE = 'auth_invitation_account_deletion_time';
 
     /** @var stdClass Configuration of the auth_invitation plugin. */
     private stdClass $config;
 
     /**
+     * {@inheritDoc}
+     *
+     * @return string
      * @throws coding_exception
      */
     public function get_name(): string {
@@ -51,6 +55,8 @@ class delete_temporary_users extends scheduled_task {
     }
 
     /**
+     * {@inheritDoc}
+     *
      * @throws dml_exception
      * @throws coding_exception
      * @throws moodle_exception
@@ -78,7 +84,7 @@ class delete_temporary_users extends scheduled_task {
 
         // Notify all users who need to be notified.
         if ($this->config->autodeleteusersnoticedays > 0) {
-            $notifyusers = array_filter($inactiveusers, function($user) use ($deleteaftersecs) {
+            $notifyusers = array_filter($inactiveusers, function ($user) use ($deleteaftersecs) {
                 // Only notify if no notice has been sent, yet, or if not enough time has passed between the user's last
                 // access and the scheduled deletion time announced in the previous notice.
                 return empty($user->deletiontime) || ($user->deletiontime - $user->lastaccess < $deleteaftersecs);
@@ -92,7 +98,7 @@ class delete_temporary_users extends scheduled_task {
         // Delete all users who can be deleted.
         $deleteusers = array_filter($inactiveusers, fn($user) => $user->lastaccess < $deletethreshold);
         if ($this->config->autodeleteusersnoticedays > 0) {
-            $deleteusers = array_filter($deleteusers, function($user) use ($deleteaftersecs, $noticethreshold) {
+            $deleteusers = array_filter($deleteusers, function ($user) use ($deleteaftersecs, $noticethreshold) {
                 // Only delete if a notice has been sent, enough time has passed between the user's last access and the
                 // scheduled deletion time announced in the notice, and the deletion time is not in the future.
                 return !empty($user->deletiontime) && $user->deletiontime - $user->lastaccess >= $deleteaftersecs &&
@@ -115,17 +121,17 @@ class delete_temporary_users extends scheduled_task {
     private function get_inactive_users(int $lastaccessbefore): array {
         global $DB;
         return $DB->get_records_sql(
-                "SELECT u.*, pref.value AS deletiontime
-                FROM {user} u
-                LEFT JOIN {user_preferences} pref ON pref.userid = u.id AND pref.name = :prefname
-                WHERE u.deleted = 0
-                  AND u.auth = 'invitation'
-                  AND u.lastaccess > 0
-                  AND u.lastaccess < :lastaccessbefore",
-                [
-                    'prefname' => self::ACCOUNT_DELETION_TIME_USER_PREFERENCE,
-                    'lastaccessbefore' => $lastaccessbefore
-                ]
+            "SELECT u.*, pref.value AS deletiontime
+            FROM {user} u
+            LEFT JOIN {user_preferences} pref ON pref.userid = u.id AND pref.name = :prefname
+            WHERE u.deleted = 0
+              AND u.auth = 'invitation'
+              AND u.lastaccess > 0
+              AND u.lastaccess < :lastaccessbefore",
+            [
+                'prefname' => self::ACCOUNT_DELETION_TIME_USER_PREFERENCE,
+                'lastaccessbefore' => $lastaccessbefore,
+            ]
         );
     }
 
@@ -193,7 +199,7 @@ class delete_temporary_users extends scheduled_task {
         $deletedcount = 0;
         foreach ($users as $user) {
             $lastaccessstr = date(DATE_ATOM, $user->lastaccess);
-            if (!$this->delete_user($user)) {
+            if (!delete_user($user)) {
                 mtrace("ERROR: Failed to delete user $user->username with ID $user->id (last seen at $lastaccessstr). " .
                         "See debugging output for more info.");
                 // Will be tried again the next time this task is run.
@@ -207,32 +213,6 @@ class delete_temporary_users extends scheduled_task {
             }
         }
         mtrace("$deletedcount of $totalcount users were successfully deleted.");
-    }
-
-    /**
-     * Deletes a user in a DB transaction.
-     *
-     * @param stdClass $user
-     * @return bool Whether the user was deleted successfully.
-     */
-    private function delete_user(stdClass $user): bool {
-        global $DB;
-        $transaction = $DB->start_delegated_transaction();
-        try {
-            if (!delete_user($user)) {
-                return false;
-            }
-            $transaction->allow_commit();
-            return true;
-        } catch (\Exception $e) {
-            mtrace($e);
-            try {
-                $transaction->rollback($e);
-            } catch (\Exception) {
-                // Nop.
-            }
-        }
-        return false;
     }
 
     /**

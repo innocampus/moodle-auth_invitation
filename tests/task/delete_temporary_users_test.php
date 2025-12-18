@@ -67,13 +67,13 @@ final class delete_temporary_users_test extends \advanced_testcase {
      * @throws moodle_exception
      */
     public function test_execute(
-            int $time,
-            int $deletiondays,
-            int $notificationdays,
-            array $users,
-            string $expectedoutputregex,
-            array $expectednotified,
-            array $expecteddeleted
+        int $time,
+        int $deletiondays,
+        int $notificationdays,
+        array $users,
+        string $expectedoutputregex,
+        array $expectednotified,
+        array $expecteddeleted
     ): void {
         global $DB;
         $this->resetAfterTest();
