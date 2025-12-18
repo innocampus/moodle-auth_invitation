@@ -127,7 +127,8 @@ class delete_temporary_users extends scheduled_task {
             WHERE u.deleted = 0
               AND u.auth = 'invitation'
               AND u.lastaccess > 0
-              AND u.lastaccess < :lastaccessbefore",
+              AND u.lastaccess < :lastaccessbefore
+            ORDER BY u.id",
             [
                 'prefname' => self::ACCOUNT_DELETION_TIME_USER_PREFERENCE,
                 'lastaccessbefore' => $lastaccessbefore,
