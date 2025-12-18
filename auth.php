@@ -119,6 +119,9 @@ class auth_plugin_invitation extends auth_plugin_base {
         if ($invite->userid) {
             throw new coding_exception('Cannot sign up using invitation for existing user.');
         }
+        if (!$this->is_allowed_email($user->email)) {
+            throw new coding_exception('Self-registration not allowed for users with this email.');
+        }
 
         // We can confirm the user since the invitation token is valid (and matches their email address).
         $user->confirmed = 1;
