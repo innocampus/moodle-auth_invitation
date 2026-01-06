@@ -228,7 +228,8 @@ class auth_plugin_invitation extends auth_plugin_base {
             return null;
         }
         $wantsurl = new moodle_url($SESSION->wantsurl);
-        if ($wantsurl->get_path() !== '/enrol/invitation/enrol.php') {
+        $enrolurl = new moodle_url('/enrol/invitation/enrol.php');
+        if ($wantsurl->get_path() !== $enrolurl->get_path()) {
             return null;
         }
         return $wantsurl->param('token');
