@@ -212,7 +212,7 @@ class auth_plugin_invitation extends auth_plugin_base {
                 'token' => $token,
                 'time' => time(),
             ]
-        );
+        ) ?: null;
     }
 
     /**
