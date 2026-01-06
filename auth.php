@@ -109,18 +109,9 @@ class auth_plugin_invitation extends auth_plugin_base {
         if (empty($user->invitationtoken)) {
             throw new coding_exception('Missing invitationtoken in user data from signup form.');
         }
-        $invite = $this->get_valid_invitation($user->invitationtoken);
-        if (!$invite) {
-            throw new moodle_exception('invalidinvite', 'auth_invitation');
-        }
+        $invite = $this->validate_signup_prerequisites($user->invitationtoken);
         if (strtolower($invite->email) !== strtolower($user->email)) {
             throw new coding_exception('Email in user data from signup form does not match email in invitation.');
-        }
-        if ($invite->userid) {
-            throw new coding_exception('Cannot sign up using invitation for existing user.');
-        }
-        if (!$this->is_allowed_email($user->email)) {
-            throw new coding_exception('Self-registration not allowed for users with this email.');
         }
 
         // We can confirm the user since the invitation token is valid (and matches their email address).
@@ -161,12 +152,8 @@ class auth_plugin_invitation extends auth_plugin_base {
 
             \core\session\manager::apply_concurrent_login_limit($user->id, session_id());
 
-            // Redirect to course enrolment.
-            if ($SESSION->wantsurl) {
-                redirect(new moodle_url($SESSION->wantsurl));
-            } else {
-                redirect(new moodle_url('/enrol/invitation/enrol.php', ['token' => $invite->token]));
-            }
+            // Redirect to post-signup page.
+            redirect(new moodle_url('/auth/invitation/postsignup.php', ['invitationtoken' => $invite->token]));
         }
 
         return true;
@@ -236,8 +223,7 @@ class auth_plugin_invitation extends auth_plugin_base {
     }
 
     /**
-     * Return a form to capture user details for account creation.
-     * This is used in /login/signup.php and /auth/invitation/signup.php.
+     * Return a form to capture user details for account creation. This is used in /login/signup.php.
      *
      * Only users who were invited to a course using enrol_invitation can use this form to sign up.
      *
@@ -249,13 +235,7 @@ class auth_plugin_invitation extends auth_plugin_base {
      */
     public function signup_form(?string $invitationtoken = null): moodleform {
         $token = $invitationtoken ?: $this->get_invitation_token_from_session();
-        if (!$token) {
-            throw new moodle_exception('invalidinvite', 'auth_invitation');
-        }
-        $invite = $this->get_valid_invitation($token);
-        if (!$invite) {
-            throw new moodle_exception('invalidinvite', 'auth_invitation');
-        }
+        $invite = $this->validate_signup_prerequisites($token);
         $customdata = [
             'invitationtoken' => $invite->token,
             'email' => $invite->email,
@@ -288,33 +268,83 @@ class auth_plugin_invitation extends auth_plugin_base {
     /**
      * Hook called by require_login before redirecting to the login page.
      *
+     * This automatically redirects the user to the signup form if all conditions are met.
+     *
      * @throws moodle_exception
      * @throws dml_exception
      */
     public function pre_loginpage_hook(): void {
-        $token = $this->get_invitation_token_from_session();
-        if (!$token) {
+        global $CFG;
+        if ($CFG->registerauth !== $this->authtype) {
+            // This plugin is not selected for self registration -> show normal login form.
             return;
+        }
+        if (!get_config('auth_invitation', 'redirecttosignup')) {
+            // Automatic redirection to signup is disabled -> show normal login form.
+            return;
+        }
+        $token = $this->get_invitation_token_from_session();
+        try {
+            $this->validate_signup_prerequisites($token);
+        } catch (dml_exception $e) {
+            throw $e; // Always rethrow database errors.
+        } catch (moodle_exception $e) {
+            // Invitation token cannot be used for signup -> show normal login form.
+            return;
+        }
+        // Invited user does not exist in DB -> redirect to pre-signup page.
+        redirect(new moodle_url('/auth/invitation/presignup.php'));
+    }
+
+    /**
+     * Called from /login/signup.php via {@see auth_invitation_pre_signup_requests()} before showing the signup form.
+     *
+     * tool_policy uses the same pre_signup_requests callback to redirect to the policy acceptance pages
+     * (see {@see tool_policy_pre_signup_requests()}). We want to prevent this if we already know signup is not possible
+     * to improve user experience (seeing an error message only AFTER accepting the site policies is bad UX).
+     * Fortunately, our callback is called before tool_policy due to the component loading order.
+     *
+     * @throws moodle_exception
+     * @throws dml_exception
+     */
+    public function pre_signup_hook(): void {
+        global $CFG;
+        if ($CFG->registerauth !== $this->authtype) {
+            // This plugin is not selected for self registration.
+            return;
+        }
+        $token = $this->get_invitation_token_from_session();
+        $this->validate_signup_prerequisites($token);
+        // All prerequisites met, signup process can commence with policy acceptance.
+    }
+
+    /**
+     * Validates whether an invitation token is valid for signup. Returns the invitation record if it is or throws an
+     * appropriate exception otherwise.
+     *
+     * @param string|null $token Invitation token, or null if none is available (this will always throw an exception).
+     * @return stdClass The invitation record valid for signup.
+     * @throws moodle_exception
+     * @throws dml_exception
+     */
+    protected function validate_signup_prerequisites(?string $token): stdClass {
+        if (!$token) {
+            throw new moodle_exception('signuponlywithinvite', 'auth_invitation');
         }
         $invite = $this->get_valid_invitation($token);
         if (!$invite) {
             throw new moodle_exception('invalidinvite', 'auth_invitation');
         }
         if ($invite->userid) {
-            // Invite was sent to existing user -> let them log in normally.
-            return;
+            throw new moodle_exception('signupaccountexists', 'auth_invitation');
         }
         if (!$this->is_allowed_email($invite->email)) {
-            // We do not allow self-registration for users with this email -> show login page.
-            return;
+            throw new moodle_exception('signupprohibitedbyemail', 'auth_invitation');
         }
-        $user = $this->get_user_by_email($invite->email);
-        if ($user) {
-            // Invited user exists in DB -> let them log in normally.
-            return;
+        if ($this->get_user_by_email($invite->email)) {
+            throw new moodle_exception('signupaccountexists', 'auth_invitation');
         }
-        // Invited user does not exist in DB -> immediately redirect to our custom signup form.
-        redirect(new moodle_url('/auth/invitation/signup.php', ['invitationtoken' => $token]));
+        return $invite;
     }
 
     /**

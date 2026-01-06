@@ -22,6 +22,8 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+$string['acceptinvitation'] = 'Accept invitation';
+$string['accountcreatedsuccessfully'] = 'Your account was created successfully. You can log in with your chosen credentials using the regular login form in the future.';
 $string['accountdeleted'] = 'Hi {$a->firstname},
 
 Your account at \'{$a->sitefullname}\' was deleted automatically due to inactivity.
@@ -46,7 +48,7 @@ If you need help, please contact the site administrator,
 $string['accountdeletionnoticesubject'] = '{$a->sitefullname}: account deletion in {$a->deletionindays} days';
 $string['allowedemailpatterns'] = 'Allowed email addresses';
 $string['allowedemailpatterns_help'] = 'Specify all email addresses for which signing up using this plugin is allowed. Each row must contain one email address or a pattern matching multiple email addresses. You can use the wildcards <code>*</code> (any string) and <code>?</code> (any character) as well as character classes in the format <code>[0-9]</code> (any digit), <code>[a-z]</code> (a character in the range a-z), <code>[!abc]</code> (any character <i>except</i> a, b, and c). Special characters can be escaped using <code>\</code>. Email addresses are converted to lower case before comparison. The setting auth_invitation/prohibitedemailpatterns takes precedence over this.';
-$string['alreadyregistered'] = 'Ich habe bereits ein Nutzerkonto';
+$string['alreadyregistered'] = 'I already have an account';
 $string['assignedroles'] = 'Roles assigned to new users';
 $string['assignedroles_help'] = 'Roles selected here are automatically assigned in the system context to all users who register using this plugin. This can be used to assign a role to invited users which distinguishes them from other users and prohibits certain permissions (e.g. self-enrolment into courses).';
 $string['autodeleteusers'] = 'Auto-delete inactive users';
@@ -55,22 +57,31 @@ $string['autodeleteusersafterdays'] = 'Auto-delete after (days)';
 $string['autodeleteusersafterdays_help'] = 'Number of days which must have passed since a user\'s last access to the site for the user to be automatically deleted.';
 $string['autodeleteusersnoticedays'] = 'Notification time (days)';
 $string['autodeleteusersnoticedays_help'] = 'Number of days before deletion at which the user is notified via email about the pending deletion of their account. Set to 0 to disable notifications.';
+$string['coursenowavailable'] = 'You may now proceed to the course to which you were invited.';
+$string['createnewaccount'] = 'Create new account';
 $string['deleteinactiveusers'] = 'Delete inactive users';
 $string['description'] = 'Users can only register using this plugin when they have been invited to a course using the enrolment method "Invitation" (enrol_invitation).';
 $string['generateusername'] = 'Automatically generate usernames';
 $string['generateusername_help'] = 'Activate this setting to automatically generate and assign a username to newly registered users. When this option is active, user do not need to specify a username in the sign up form. When it is not active, they may freely choose a username.<br> <strong>When this setting is active, users are automatically assigned a username, but they do not know it and thus cannot log in using it. Therefore, please make sure to allow the login via email address in this case by activating the system setting authloginviaemail.</strong>';
-$string['invalidinvite'] = 'This invitation is expired or has already been used.';
+$string['invalidinvite'] = 'This invitation is expired or has already been used. Self-registration is only possible with a valid invitation to a course on this site.';
 $string['pluginname'] = 'Invitation';
 $string['privacy:metadata'] = 'The Invitation authentication plugin does not store any personal data.';
+$string['proceedtocourse'] = 'Proceed to course';
 $string['prohibitedemailpatterns'] = 'Prohibited email addresses';
 $string['prohibitedemailpatterns_help'] = 'Specify all email addresses for which signing up using this plugin is <i>not</i> allowed. This uses the same syntax as auth_invitation/allowedemailpatterns and takes precendence over that setting. This setting can be used to define exceptions for the patterns defined in auth_invitation/allowedemailpatterns';
+$string['redirecttosignup'] = 'Automatically redirect to signup';
+$string['redirecttosignup_help'] = 'Specify whether invited users without an account should automatically be redirected to the signup form instead of the login form. Users with email addresses for which self registration is not allowed are exempted from this.';
 $string['registereduserscontactteachers'] = 'If you already have an account with a different email address, please contact the course organizers to receive a new invitation for your existing account.';
-$string['registeredusersloginhere'] = 'If you already have an account with a different email address, please log in using the button below.';
-$string['registerhere'] = 'You have been invited to a course on this site, but you do not seem to have a user account, yet. Please fill out the information below to register an account which you can then use to access the course.';
+$string['registeredusersloginhere'] = 'If you already have an account with a different email address, please instead use the button "I already have an account" to log in.';
+$string['registerhere'] = 'You have been invited to a course on this site, but you do not seem to have a user account, yet. Please choose "Create new account" to create an account which you can then use to access the course.';
 $string['showcityfieldonsignup'] = 'Show profile field "City"';
 $string['showcityfieldonsignup_help'] = 'When this option is active, the profile field "City" is shown in the sign up form.';
 $string['showcountryfieldonsignup'] = 'Show profile field "Country"';
 $string['showcountryfieldonsignup_help'] = 'When this option is active, the profile field "Country" is shown in the sign up form.';
+$string['signupaccountexists'] = 'There already exists a user account for this invitation or email address. Please log in normally.';
+$string['signupcomplete'] = 'Signup complete';
+$string['signuponlywithinvite'] = 'Self-registration is only possible with an invitation to a course on this site. Please contact your teachers to receive an invitation.';
+$string['signupprohibitedbyemail'] = 'Self-registration not allowed for this invitation because your email address is listed as prohibited. Please try logging in normally or contact the site administrators if you think this is an error.';
 $string['signupsettings'] = 'Settings for the sign up form';
 $string['signupsettingsdesc'] = 'Specify which profile data users can and must provide in the sign up form.';
 $string['usernameprefix'] = 'Prefix for generated usernames';

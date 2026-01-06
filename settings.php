@@ -32,6 +32,14 @@ if ($ADMIN->fulltree) {
         new lang_string('description', 'auth_invitation')
     ));
 
+    // Automatic redirection to signup form.
+    $settings->add(new admin_setting_configcheckbox(
+        'auth_invitation/redirecttosignup',
+        get_string('redirecttosignup', 'auth_invitation'),
+        get_string('redirecttosignup_help', 'auth_invitation'),
+        1
+    ));
+
     // Roles to assign to registered users.
     $settings->add(new admin_setting_pickroles(
         'auth_invitation/assignedroles',
