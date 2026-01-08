@@ -22,6 +22,7 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+use auth_invitation\email_helper;
 use Random\RandomException;
 
 defined('MOODLE_INTERNAL') || die();
@@ -145,6 +146,11 @@ class auth_plugin_invitation extends auth_plugin_base {
         // Trigger event.
         \core\event\user_created::create_from_userid($user->id)->trigger();
 
+        if (get_config('auth_invitation', 'sendwelcomeemail')) {
+            // Send welcome email.
+            $this->send_welcome_email($user);
+        }
+
         if ($notify) {
             // Log in newly created user.
             $user = get_complete_user_data('username', $user->username);
@@ -178,6 +184,18 @@ class auth_plugin_invitation extends auth_plugin_base {
             // The function just returns when the user already has this role.
             \role_assign($roleid, $userid, \context_system::instance(), 'auth_invitation');
         }
+    }
+
+    /**
+     * Send a welcome email to a user who has just signed up.
+     *
+     * @param stdClass $user
+     * @throws moodle_exception
+     */
+    protected function send_welcome_email(stdClass $user): void {
+        $data = email_helper::get_common_email_data($user);
+        $data->loginurl = get_login_url();
+        email_helper::send_localized_email($user, 'welcomeemailsubject', 'welcomeemail', $data);
     }
 
     /**

@@ -24,6 +24,7 @@
 
 namespace auth_invitation\task;
 
+use auth_invitation\email_helper;
 use coding_exception;
 use core\task\scheduled_task;
 use dml_exception;
@@ -177,14 +178,14 @@ class delete_inactive_users extends scheduled_task {
     private function notify_user(stdClass $user, int $deletiontime): bool {
         $sm = get_string_manager();
 
-        $data = $this->get_common_email_data($user);
+        $data = email_helper::get_common_email_data($user);
         $data->loginurl = get_login_url();
         $dateformat = $sm->get_string('strftimedatefullshort', lang: $user->lang);
         // Last full day in user's timezone before the account will be deleted.
         $data->deletionafter = userdate($deletiontime - DAYSECS, $dateformat, $user->timezone);
         $data->deletionindays = $this->config->autodeleteusersnoticedays;
 
-        return $this->send_localized_email($user, 'accountdeletionnoticesubject', 'accountdeletionnotice', $data);
+        return email_helper::send_localized_email($user, 'accountdeletionnoticesubject', 'accountdeletionnotice', $data);
     }
 
     /**
@@ -225,47 +226,7 @@ class delete_inactive_users extends scheduled_task {
      * @throws moodle_exception
      */
     private function notify_deleted_user(stdClass $user): bool {
-        $data = $this->get_common_email_data($user);
-        return $this->send_localized_email($user, 'accountdeletedsubject', 'accountdeleted', $data);
-    }
-
-    /**
-     * Returns an object with common placeholders required for all emails.
-     *
-     * @param stdClass $user
-     * @return stdClass
-     * @throws moodle_exception
-     */
-    private function get_common_email_data(stdClass $user): stdClass {
-        global $CFG;
-        $site = get_site();
-        $data = new stdClass();
-        $data->sitefullname = format_string($site->fullname);
-        $data->siteshortname = format_string($site->shortname);
-        $data->wwwroot = $CFG->wwwroot;
-        $data->admin = generate_email_signoff();
-        // Add user name fields to $data based on $user.
-        $placeholders = \core_user::get_name_placeholders($user);
-        foreach ($placeholders as $field => $value) {
-            $data->{$field} = $value;
-        }
-        return $data;
-    }
-
-    /**
-     * Sends an email to a user in that user's language.
-     *
-     * @param stdClass $user The recipient.
-     * @param string $subjectstringid The string id of the subject lang string.
-     * @param string $messagestringid The string id of the body lang string.
-     * @param stdClass $data Placeholder data.
-     * @return bool Whether the email was sent successfully.
-     */
-    private function send_localized_email(stdClass $user, string $subjectstringid, string $messagestringid, stdClass $data): bool {
-        $sm = get_string_manager();
-        $subject = $sm->get_string($subjectstringid, 'auth_invitation', $data, lang: $user->lang);
-        $message = $sm->get_string($messagestringid, 'auth_invitation', $data, lang: $user->lang);
-        $messagehtml = text_to_html($message, smileyignored: false, para: false);
-        return email_to_user($user, \core_user::get_support_user(), $subject, $message, $messagehtml);
+        $data = email_helper::get_common_email_data($user);
+        return email_helper::send_localized_email($user, 'accountdeletedsubject', 'accountdeleted', $data);
     }
 }

@@ -73,6 +73,8 @@ $string['redirecttosignup'] = 'Automatische Weiterleitung zur Registrierung';
 $string['redirecttosignup_help'] = 'Geben Sie an, ob eingeladene Nutzende ohne vorhandenes Konto an Stelle des Anmeldeformulars automatisch zum Registrierungsformular weitergeleitet werden sollen. Nutzende, für deren E-Mail Adresse eine Selbstregistrierung nicht erlaubt ist, sind davon ausgenommen.';
 $string['registereduserscontactteachers'] = 'Falls Sie bereits ein Nutzerkonto mit einer anderen E-Mail Adresse haben, kontaktieren Sie bitte die Kursverantwortlichen, um eine neue Einladung für Ihr existierendes Konto zu erhalten.';
 $string['registeredusersloginhere'] = 'Falls Sie bereits ein Nutzerkonto mit einer anderen E-Mail Adresse haben, verwenden Sie bitte die Schaltfläche "Ich habe bereits ein Konto", um sich anzumelden.';
+$string['sendwelcomeemail'] = 'Willkommens-E-Mail senden';
+$string['sendwelcomeemail_help'] = 'Geben Sie an, ob eine Willkommens-E-Mail an neu registrierte Nutzende gesendet werden soll. Der Text dieser E-Mail kann durch eine Sprachanpassung der Strings <b>welcomeemail</b> und <b>welcomeemailsubject</b> des Plugins <b>auth_invitation</b> geändert werden.';
 $string['showcityfieldonsignup'] = 'Profilfeld "Stadt" anzeigen';
 $string['showcityfieldonsignup_help'] = 'Wenn diese Option ausgewählt ist, wird das Profilfeld "Stadt" im Anmeldeformular abgefragt.';
 $string['showcountryfieldonsignup'] = 'Profilfeld "Land" anzeigen';
@@ -86,3 +88,16 @@ $string['signupsettings'] = 'Einstellungen des Registrierungsformulars';
 $string['signupsettingsdesc'] = 'Legen Sie fest, welche Daten Nutzer/innen im Registrierungsformular angeben können und müssen.';
 $string['usernameprefix'] = 'Präfix für generierte Anmeldenamen';
 $string['usernameprefix_help'] = 'Das hier angegebene Präfix wird automatisch generierten Anmeldenamen vorangestellt. Der finale Anmeldename besteht aus diesem Präfix gefolgt von einer zufällig generierten Zahl.';
+$string['welcomeemail'] = 'Guten Tag {$a->fullname},
+
+Willkommen bei \'{$a->sitefullname}\'!
+
+Ihr Nutzerkonto wurde erfolgreich angelegt. Falls noch nicht geschehen, können Sie jetzt den Kurs aufrufen, zu dem Sie eingeladen wurden, indem Sie dem Link in der ursprünglichen Einladungs-E-Mail folgen.
+
+Bitte beachten Sie, dass der Einladungslink nur einmal verwendet werden kann. Um in Zukunft auf den Kurs zuzugreifen, melden Sie sich bitte hier mit den von Ihnen festgelegten Zugangsdaten an und wählen Sie den Kurs in der Liste auf der Seite \'Meine Kurse\':
+
+{$a->loginurl}
+
+Falls Sie Fragen haben, wenden Sie sich bitte an:
+{$a->admin}';
+$string['welcomeemailsubject'] = '{$a->sitefullname}: Nutzerkonto angelegt';

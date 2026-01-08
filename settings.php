@@ -63,6 +63,14 @@ if ($ADMIN->fulltree) {
         ''
     ));
 
+    // Whether to send a welcome email.
+    $settings->add(new admin_setting_configcheckbox(
+        'auth_invitation/sendwelcomeemail',
+        get_string('sendwelcomeemail', 'auth_invitation'),
+        get_string('sendwelcomeemail_help', 'auth_invitation'),
+        1
+    ));
+
     // Settings for automatic user deletion.
     $settings->add(new admin_setting_configcheckbox(
         'auth_invitation/autodeleteusers',

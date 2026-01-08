@@ -73,6 +73,8 @@ $string['redirecttosignup'] = 'Automatically redirect to signup';
 $string['redirecttosignup_help'] = 'Specify whether invited users without an account should automatically be redirected to the signup form instead of the login form. Users with email addresses for which self registration is not allowed are exempted from this.';
 $string['registereduserscontactteachers'] = 'If you already have an account with a different email address, please contact the course organizers to receive a new invitation for your existing account.';
 $string['registeredusersloginhere'] = 'If you already have an account with a different email address, please instead use the button "I already have an account" to log in.';
+$string['sendwelcomeemail'] = 'Send welcome email';
+$string['sendwelcomeemail_help'] = 'Specify whether a welcome email should be sent to newly registered users. The contents of this email can be changed by customizing the language strings <b>welcomeemail</b> and <b>welcomeemailsubject</b> of the <b>auth_invitation</b> plugin.';
 $string['showcityfieldonsignup'] = 'Show profile field "City"';
 $string['showcityfieldonsignup_help'] = 'When this option is active, the profile field "City" is shown in the sign up form.';
 $string['showcountryfieldonsignup'] = 'Show profile field "Country"';
@@ -86,3 +88,16 @@ $string['signupsettings'] = 'Settings for the sign up form';
 $string['signupsettingsdesc'] = 'Specify which profile data users can and must provide in the sign up form.';
 $string['usernameprefix'] = 'Prefix for generated usernames';
 $string['usernameprefix_help'] = 'The prefix specified here is prepended to generated usernames. The final username consists of this prefix followed by a randomly generated number.';
+$string['welcomeemail'] = 'Hi {$a->firstname},
+
+Welcome to \'{$a->sitefullname}\'!
+
+Your account has been created successfully. If you have not already done so, you may now access the course which you were invited to by following the link in the invitation email.
+
+Please note that the invitation link can only be used once. To access the course in the future, please log in here using your chosen credentials and select the course from the list on the \'My courses\' page:
+
+{$a->loginurl}
+
+If you need help, please contact the site administrator,
+{$a->admin}';
+$string['welcomeemailsubject'] = '{$a->sitefullname}: account created';
