@@ -104,7 +104,7 @@ class auth_plugin_invitation extends auth_plugin_base {
      * @throws RandomException
      */
     public function user_signup($user, $notify = true): bool {
-        global $CFG, $SESSION;
+        global $CFG;
 
         // Validate invitation token.
         if (empty($user->invitationtoken)) {
@@ -117,11 +117,6 @@ class auth_plugin_invitation extends auth_plugin_base {
 
         // We can confirm the user since the invitation token is valid (and matches their email address).
         $user->confirmed = 1;
-
-        if (get_config('auth_invitation', 'generateusername')) {
-            // Generate a unique username for the new user.
-            $user->username = $this->generate_unique_username();
-        }
 
         // Create user account.
         require_once($CFG->dirroot . '/user/profile/lib.php');
@@ -269,28 +264,6 @@ class auth_plugin_invitation extends auth_plugin_base {
             'email' => $invite->email,
         ];
         return new \auth_invitation\forms\login_signup_form(null, $customdata, 'post', '', ['autocomplete' => 'on']);
-    }
-
-    /**
-     * Generate a unique username for an invited user.
-     *
-     * @throws coding_exception
-     * @throws RandomException
-     * @throws dml_exception
-     */
-    protected function generate_unique_username(): string {
-        global $DB, $CFG;
-        $prefix = get_config('auth_invitation', 'usernameprefix') ?? 'temp';
-        $digits = 6;
-        $maxtries = 10;
-        for ($i = 0; $i < $maxtries; $i++) {
-            $number = random_int(0, pow(10, $digits) - 1);
-            $username = $prefix . sprintf("%0{$digits}d", $number);
-            if (!$DB->record_exists('user', ['username' => $username, 'mnethostid' => $CFG->mnet_localhost_id])) {
-                return $username;
-            }
-        }
-        throw new coding_exception("Could not generate a unique username after $maxtries tries.");
     }
 
     /**

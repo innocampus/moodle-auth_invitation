@@ -25,25 +25,15 @@
 namespace auth_invitation\forms;
 
 use core\exception\coding_exception;
-use core\output\renderer_base;
-use core_user;
 use dml_exception;
-use html_writer;
-use moodleform;
-use renderable;
-use stdClass;
-use templatable;
+use Random\RandomException;
 
 defined('MOODLE_INTERNAL') || die();
 
-global $CFG;
-require_once($CFG->libdir . '/formslib.php');
-require_once($CFG->dirroot . '/user/profile/lib.php');
-require_once($CFG->dirroot . '/user/editlib.php');
-require_once($CFG->dirroot . '/login/lib.php');
+require_once($CFG->dirroot . '/login/signup_form.php');
 
 /**
- * User sign-up form. Adapted from {@see \login_signup_form}.
+ * User sign-up form. Inherits from {@see \login_signup_form}.
  *
  * Only users who were invited to a course using enrol_invitation can use this form to sign up. The invitation token and the email
  * address which the invitation was sent to must be given in the form's custom data, e.g.
@@ -58,17 +48,14 @@ require_once($CFG->dirroot . '/login/lib.php');
  * @copyright  2025 Lars Bonczek (@innoCampus, TU Berlin)
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class login_signup_form extends moodleform implements renderable, templatable {
+class login_signup_form extends \login_signup_form {
     /**
      * Form definition.
      *
-     * @return void
      * @throws dml_exception
      * @throws coding_exception
      */
-    protected function definition(): void {
-        global $CFG;
-
+    public function definition(): void {
         if (empty($this->_customdata['invitationtoken'])) {
             throw new coding_exception('Missing "invitationtoken" in customdata.');
         }
@@ -79,155 +66,84 @@ class login_signup_form extends moodleform implements renderable, templatable {
         }
         $email = $this->_customdata['email'];
 
+        parent::definition();
+
         $config = get_config('auth_invitation');
 
         $mform = $this->_form;
 
+        // Add invitation token.
         $mform->addElement('hidden', 'invitationtoken');
         $mform->setConstant('invitationtoken', $invitationtoken);
 
-        if (!$config->generateusername) {
-            $mform->addElement('text', 'username', get_string('username'), 'maxlength="100" size="12" autocapitalize="none"');
+        // Hide username field if username is auto-generated.
+        if ($config->generateusername) {
+            $mform->removeElement('username');
+            $mform->addElement('hidden', 'username');
             $mform->setType('username', PARAM_RAW);
-            $mform->addRule('username', get_string('missingusername'), 'required', null, 'client');
+            // Value is set in definition_after_data.
         }
 
-        if (!empty($CFG->passwordpolicy)) {
-            $mform->addElement('static', 'passwordpolicyinfo', '', print_password_policy());
-        }
-        $mform->addElement('password', 'password', get_string('password'), [
-            'maxlength' => MAX_PASSWORD_CHARACTERS,
-            'size' => 12,
-            'autocomplete' => 'new-password',
-        ]);
-        $mform->setType('password', core_user::get_property_type('password'));
-        $mform->addRule('password', get_string('missingpassword'), 'required', null, 'client');
-        $mform->addRule(
-            'password',
-            get_string('maximumchars', '', MAX_PASSWORD_CHARACTERS),
-            'maxlength',
-            MAX_PASSWORD_CHARACTERS,
-            'client'
-        );
-
-        $mform->addElement('text', 'email', get_string('email'), 'disabled="disabled"');
+        // Redefine email fields with preset values.
+        $mform->removeElement('email');
+        $emailel = $mform->createElement('text', 'email', get_string('email'), 'disabled="disabled"');
+        $mform->insertElementBefore($emailel, 'email2');
         $mform->setConstant('email', $email);
         $mform->setForceLtr('email');
+        $mform->removeElement('email2');
+        $mform->addElement('hidden', 'email2');
+        $mform->setConstant('email2', $email);
 
-        $namefields = useredit_get_required_name_fields();
-        foreach ($namefields as $field) {
-            $mform->addElement('text', $field, get_string($field), 'maxlength="100" size="30"');
-            $mform->setType($field, core_user::get_property_type('firstname'));
-            $stringid = 'missing' . $field;
-            if (!get_string_manager()->string_exists($stringid, 'moodle')) {
-                $stringid = 'required';
-            }
-            $mform->addRule($field, get_string($stringid), 'required', null, 'client');
+        // Remove city and country fields if not desired.
+        if ($config->hidecityfieldonsignup) {
+            $mform->removeElement('city');
         }
-
-        if ($config->showcityfield) {
-            $mform->addElement('text', 'city', get_string('city'), 'maxlength="120" size="20"');
-            $mform->setType('city', core_user::get_property_type('city'));
-            if (!empty($CFG->defaultcity)) {
-                $mform->setDefault('city', $CFG->defaultcity);
-            }
+        if ($config->hidecountryfieldonsignup) {
+            $mform->removeElement('country');
         }
-
-        if ($config->showcountryfield) {
-            $country = get_string_manager()->get_list_of_countries();
-            $defaultcountry[''] = get_string('selectacountry');
-            $country = array_merge($defaultcountry, $country);
-            $mform->addElement('select', 'country', get_string('country'), $country);
-
-            if (!empty($CFG->country)) {
-                $mform->setDefault('country', $CFG->country);
-            } else {
-                $mform->setDefault('country', '');
-            }
-        }
-
-        profile_signup_fields($mform);
-
-        // Hook for plugins to extend form definition.
-        core_login_extend_signup_form($mform);
-
-        // Add "Agree to sitepolicy" controls. By default it is a link to the policy text and a checkbox but
-        // it can be implemented differently in custom sitepolicy handlers.
-        $manager = new \core_privacy\local\sitepolicy\manager();
-        $manager->signup_form($mform);
-
-        // Buttons.
-        $this->set_display_vertical();
-        $this->add_action_buttons(true, get_string('createaccount'));
     }
 
     /**
      * Form definition after data.
      *
-     * @return void
+     * @throws coding_exception
+     * @throws RandomException
+     * @throws dml_exception
      */
     public function definition_after_data(): void {
-        $mform = $this->_form;
-        $mform->applyFilter('username', 'trim');
-
-        // Trim required name fields.
-        foreach (useredit_get_required_name_fields() as $field) {
-            $mform->applyFilter($field, 'trim');
+        $config = get_config('auth_invitation');
+        if ($config->generateusername) {
+            $mform = $this->_form;
+            // Generate username after form submission to prevent race condition.
+            $mform->setConstant('username', $this->generate_unique_username());
         }
+
+        parent::definition_after_data();
     }
 
     /**
-     * Validate user supplied data on the signup form.
+     * Generate a unique username for an invited user.
      *
-     * @param array $data array of ("fieldname"=>value) of submitted data
-     * @param array $files array of uploaded files "element_name"=>tmp_file_path
-     * @return array of "element_name"=>"error_description" if there are errors,
-     *         or an empty array if everything is OK (true allowed for backwards compatibility too).
+     * @throws coding_exception
+     * @throws RandomException
+     * @throws dml_exception
      */
-    public function validation($data, $files): array {
-        global $CFG;
-
-        $errors = parent::validation($data, $files);
-
-        // Extend validation for any form extensions from plugins.
-        $errors = array_merge($errors, core_login_validate_extend_signup_form($data));
-
-        // Construct fake user object to check password policy against required information.
-        $tempuser = new stdClass();
-        // To prevent errors with check_password_policy(),
-        // the temporary user and the guest must not share the same ID.
-        $tempuser->id = (int) $CFG->siteguest + 1;
-        $tempuser->username = 'user';
-        $tempuser->firstname = $data['firstname'];
-        $tempuser->lastname = $data['lastname'];
-        $tempuser->email = $data['email'];
-
-        $errmsg = '';
-        if (!check_password_policy($data['password'], $errmsg, $tempuser)) {
-            $errors['password'] = $errmsg;
+    public function generate_unique_username(): string {
+        global $DB, $CFG;
+        $prefix = get_config('auth_invitation', 'usernameprefix') ?? 'inviteduser';
+        $digits = 6;
+        $maxtries = 10;
+        for ($i = 0; $i < $maxtries; $i++) {
+            $number = random_int(0, pow(10, $digits) - 1);
+            $username = $prefix . sprintf("%0{$digits}d", $number);
+            if (!$DB->record_exists('user', ['username' => $username, 'mnethostid' => $CFG->mnet_localhost_id])) {
+                return $username;
+            }
+            if ($i % 3 == 2) {
+                // Three tries failed at this number of digits -> increase number of digits.
+                $digits++;
+            }
         }
-
-        // Validate customisable profile fields. (profile_validation expects an object as the parameter with userid set).
-        $dataobject = (object)$data;
-        $dataobject->id = 0;
-        $errors += profile_validation($dataobject, $files);
-
-        return $errors;
-    }
-
-    /**
-     * Export this data so it can be used as the context for a mustache template.
-     *
-     * @param renderer_base $output Used to do a final render of any components that need to be rendered for export.
-     * @return array
-     */
-    public function export_for_template(renderer_base $output): array {
-        ob_start();
-        $this->display();
-        $formhtml = ob_get_contents();
-        ob_end_clean();
-        return [
-            'formhtml' => $formhtml,
-        ];
+        throw new coding_exception("Could not generate a unique username after $maxtries tries.");
     }
 }
