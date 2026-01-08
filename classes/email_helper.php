@@ -67,7 +67,12 @@ class email_helper {
      * @param stdClass $data Placeholder data.
      * @return bool Whether the email was sent successfully.
      */
-    public static function send_localized_email(stdClass $user, string $subjectstringid, string $messagestringid, stdClass $data): bool {
+    public static function send_localized_email(
+        stdClass $user,
+        string $subjectstringid,
+        string $messagestringid,
+        stdClass $data
+    ): bool {
         $sm = get_string_manager();
         $subject = $sm->get_string($subjectstringid, 'auth_invitation', $data, lang: $user->lang);
         $message = $sm->get_string($messagestringid, 'auth_invitation', $data, lang: $user->lang);
