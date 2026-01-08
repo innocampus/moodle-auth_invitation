@@ -215,11 +215,21 @@ class auth_plugin_invitation extends auth_plugin_base {
             return null;
         }
         $wantsurl = new moodle_url($SESSION->wantsurl);
+        // Check whether $wantsurl matches /enrol/invitation/enrol.php.
         $enrolurl = new moodle_url('/enrol/invitation/enrol.php');
         if ($wantsurl->get_path() !== $enrolurl->get_path()) {
             return null;
         }
-        return $wantsurl->param('token');
+        // Verify this is not a rejection URL.
+        if ($wantsurl->param('reject')) {
+            return null;
+        }
+        // Return invitation token if it is a string.
+        $token = $wantsurl->param('token');
+        if (is_string($token)) {
+            return $token;
+        }
+        return null;
     }
 
     /**
