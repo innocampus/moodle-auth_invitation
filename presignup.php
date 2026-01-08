@@ -1,5 +1,4 @@
 <?php
-
 // This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -27,9 +26,7 @@
 
 require('../../config.php');
 
-/** @var \core\output\core_renderer $OUTPUT */
-global $OUTPUT;
-global $PAGE, $SITE;
+global $OUTPUT, $PAGE, $SITE;
 
 $PAGE->set_url('/auth/invitation/presignup.php');
 $PAGE->set_context(context_system::instance());
