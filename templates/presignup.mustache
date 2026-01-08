@@ -28,6 +28,12 @@
     }
 }}
 <div class="auth_invitation_presignup">
+    {{#lang_menu}}
+        <div class="d-flex justify-content-end mb-3 align-items-center">
+            {{#str}}language{{/str}} {{{.}}}
+        </div>
+    {{/lang_menu}}
+
     <h2>
         {{#str}} acceptinvitation, auth_invitation {{/str}}
     </h2>

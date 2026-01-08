@@ -37,6 +37,7 @@ $PAGE->set_heading($SITE->fullname);
 echo $OUTPUT->header();
 
 $context = [
+    'lang_menu' => $OUTPUT->lang_menu(),
     'allowmismatchingemails' => get_config('enrol_invitation', 'allowmismatchingemails'),
     'signupurl' => new moodle_url('/login/signup.php'),
     'loginurl' => get_login_url(),
