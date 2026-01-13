@@ -87,11 +87,16 @@ class login_signup_form extends \login_signup_form {
 
         // Password confirmation.
         if ($config->confirmpasswordonsignup) {
-            $password2el = $mform->createElement('password', 'password2', get_string('confirmpassword', 'auth_invitation'), [
-                'maxlength' => MAX_PASSWORD_CHARACTERS,
-                'size' => 12,
-                'autocomplete' => 'new-password'
-            ]);
+            $password2el = $mform->createElement(
+                'password',
+                'password2',
+                get_string('confirmpassword', 'auth_invitation'),
+                [
+                    'maxlength' => MAX_PASSWORD_CHARACTERS,
+                    'size' => 12,
+                    'autocomplete' => 'new-password',
+                ]
+            );
             $mform->insertElementBefore($password2el, 'email');
             $mform->setType('password2', core_user::get_property_type('password'));
             $mform->addRule('password2', get_string('missingpassword'), 'required', null, 'client');
