@@ -100,8 +100,6 @@ class login_signup_form extends \login_signup_form {
             $mform->insertElementBefore($password2el, 'email');
             $mform->setType('password2', core_user::get_property_type('password'));
             $mform->addRule('password2', get_string('missingpassword'), 'required', null, 'client');
-            $mform->addRule('password2', get_string('maximumchars', '', MAX_PASSWORD_CHARACTERS),
-                'maxlength', MAX_PASSWORD_CHARACTERS, 'client');
         }
 
         // Redefine email fields with preset values.
