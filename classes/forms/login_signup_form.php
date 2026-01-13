@@ -25,6 +25,7 @@
 namespace auth_invitation\forms;
 
 use core\exception\coding_exception;
+use core_user;
 use dml_exception;
 use Random\RandomException;
 
@@ -84,6 +85,20 @@ class login_signup_form extends \login_signup_form {
             // Value is set in definition_after_data.
         }
 
+        // Password confirmation.
+        if ($config->confirmpasswordonsignup) {
+            $password2el = $mform->createElement('password', 'password2', get_string('confirmpassword', 'auth_invitation'), [
+                'maxlength' => MAX_PASSWORD_CHARACTERS,
+                'size' => 12,
+                'autocomplete' => 'new-password'
+            ]);
+            $mform->insertElementBefore($password2el, 'email');
+            $mform->setType('password2', core_user::get_property_type('password'));
+            $mform->addRule('password2', get_string('missingpassword'), 'required', null, 'client');
+            $mform->addRule('password2', get_string('maximumchars', '', MAX_PASSWORD_CHARACTERS),
+                'maxlength', MAX_PASSWORD_CHARACTERS, 'client');
+        }
+
         // Redefine email fields with preset values.
         $mform->removeElement('email');
         $emailel = $mform->createElement('text', 'email', get_string('email'), 'disabled="disabled"');
@@ -119,6 +134,27 @@ class login_signup_form extends \login_signup_form {
         }
 
         parent::definition_after_data();
+    }
+
+    /**
+     * Validate user supplied data on the signup form.
+     *
+     * @param array $data array of ("fieldname"=>value) of submitted data
+     * @param array $files array of uploaded files "element_name"=>tmp_file_path
+     * @return array of "element_name"=>"error_description" if there are errors,
+     * or an empty array if everything is OK (true allowed for backwards compatibility too).
+     * @throws coding_exception
+     * @throws dml_exception
+     */
+    public function validation($data, $files): array {
+        $errors = parent::validation($data, $files);
+
+        $config = get_config('auth_invitation');
+        if ($config->confirmpasswordonsignup && $data['password'] !== $data['password2']) {
+            $errors['password2'] = get_string('mismatchingpasswords', 'auth_invitation');
+        }
+
+        return $errors;
     }
 
     /**

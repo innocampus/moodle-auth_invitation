@@ -120,6 +120,13 @@ if ($ADMIN->fulltree) {
     $settings->hide_if('auth_invitation/usernameprefix', 'auth_invitation/generateusername');
 
     $settings->add(new admin_setting_configcheckbox(
+        'auth_invitation/confirmpasswordonsignup',
+        get_string('confirmpasswordonsignup', 'auth_invitation'),
+        get_string('confirmpasswordonsignup_help', 'auth_invitation'),
+        0
+    ));
+
+    $settings->add(new admin_setting_configcheckbox(
         'auth_invitation/hidecityfieldonsignup',
         get_string('hidecityfieldonsignup', 'auth_invitation'),
         get_string('hidecityfieldonsignup_help', 'auth_invitation'),
