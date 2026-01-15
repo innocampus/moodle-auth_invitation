@@ -48,19 +48,33 @@ class auth_plugin_invitation extends auth_plugin_base {
     }
 
     /**
-     * Returns true if the username and password work and false if they are
-     * wrong or don't exist.
+     * Returns true if the username and password work and false if they are wrong or don't exist.
      *
      * @param string $username The username
      * @param string $password The password
      * @return bool Authentication success or failure.
      * @throws dml_exception
+     * @throws moodle_exception
      */
     public function user_login($username, $password): bool {
         global $CFG, $DB;
         if ($user = $DB->get_record('user', ['username' => $username, 'mnethostid' => $CFG->mnet_localhost_id])) {
             return validate_internal_user_password($user, $password);
         }
+
+        if ($this->config->prohibitedemailloginerror) {
+            // Check if someone is trying to log in with a prohibited email address.
+            // Note that this only works for non-existent users or when $CFG->authloginviaemail is false because otherwise the email
+            // is replaced by the username in authenticate_user_login before this function is called.
+            if ($email = clean_param($username, PARAM_EMAIL)) {
+                if (!$this->is_allowed_email($email)) {
+                    // The user tried to log in using a prohibited email address.
+                    // The error message can be customized to explain to the user how they should log in instead.
+                    throw new moodle_exception('loginprohibitedbyemail', 'auth_invitation');
+                }
+            }
+        }
+
         return false;
     }
 

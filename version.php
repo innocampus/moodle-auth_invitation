@@ -24,7 +24,7 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->version   = 2025071000;
+$plugin->version   = 2026011500;
 $plugin->requires  = 2024100100;
 $plugin->component = 'auth_invitation';
 $plugin->dependencies = [

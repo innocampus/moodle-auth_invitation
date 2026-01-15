@@ -63,6 +63,13 @@ if ($ADMIN->fulltree) {
         ''
     ));
 
+    $settings->add(new admin_setting_configcheckbox(
+        'auth_invitation/prohibitedemailloginerror',
+        get_string('prohibitedemailloginerror', 'auth_invitation'),
+        get_string('prohibitedemailloginerror_help', 'auth_invitation'),
+        1
+    ));
+
     // Whether to send a welcome email.
     $settings->add(new admin_setting_configcheckbox(
         'auth_invitation/sendwelcomeemail',
