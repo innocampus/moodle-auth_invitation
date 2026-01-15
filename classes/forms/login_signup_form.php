@@ -133,7 +133,9 @@ class login_signup_form extends \login_signup_form {
         if ($config->generateusername) {
             $mform = $this->_form;
             // Generate username after form submission to prevent race condition.
-            $mform->setConstant('username', $this->generate_unique_username());
+            $prefix = $config->usernameprefix ?? 'inviteduser';
+            $username = $this->generate_unique_username($prefix);
+            $mform->setConstant('username', $username);
         }
 
         parent::definition_after_data();
@@ -163,13 +165,13 @@ class login_signup_form extends \login_signup_form {
     /**
      * Generate a unique username for an invited user.
      *
+     * @param string $prefix Prefix prepended to the generated username.
      * @throws coding_exception
      * @throws RandomException
      * @throws dml_exception
      */
-    public function generate_unique_username(): string {
+    public function generate_unique_username(string $prefix): string {
         global $DB, $CFG;
-        $prefix = get_config('auth_invitation', 'usernameprefix') ?? 'inviteduser';
         $digits = 6;
         $maxtries = 10;
         for ($i = 0; $i < $maxtries; $i++) {

@@ -141,7 +141,7 @@ class auth_plugin_invitation extends auth_plugin_base {
         // Trigger event.
         \core\event\user_created::create_from_userid($user->id)->trigger();
 
-        if (get_config('auth_invitation', 'sendwelcomeemail')) {
+        if ($this->config->sendwelcomeemail) {
             // Send welcome email.
             $this->send_welcome_email($user);
         }
@@ -169,8 +169,7 @@ class auth_plugin_invitation extends auth_plugin_base {
      * @throws dml_exception
      */
     protected function assign_global_roles(int $userid): void {
-        $roles = get_config('auth_invitation', 'assignedroles');
-        foreach (explode(',', $roles) as $roleid) {
+        foreach (explode(',', $this->config->assignedroles) as $roleid) {
             $roleid = trim($roleid);
             if (empty($roleid)) {
                 continue;
@@ -280,7 +279,7 @@ class auth_plugin_invitation extends auth_plugin_base {
             // This plugin is not selected for self registration -> show normal login form.
             return;
         }
-        if (!get_config('auth_invitation', 'redirecttosignup')) {
+        if (!$this->config->redirecttosignup) {
             // Automatic redirection to signup is disabled -> show normal login form.
             return;
         }
@@ -361,15 +360,14 @@ class auth_plugin_invitation extends auth_plugin_base {
      * @throws dml_exception
      */
     protected function is_allowed_email(string $email): bool {
-        $config = get_config('auth_invitation');
         $email = strtolower($email);
         $splitpatterns = fn($patterns) => array_filter(array_map('trim', explode("\n", $patterns)));
-        foreach ($splitpatterns($config->prohibitedemailpatterns) as $prohibitedpattern) {
+        foreach ($splitpatterns($this->config->prohibitedemailpatterns) as $prohibitedpattern) {
             if (fnmatch($prohibitedpattern, $email)) {
                 return false;
             }
         }
-        foreach ($splitpatterns($config->allowedemailpatterns) as $allowedpattern) {
+        foreach ($splitpatterns($this->config->allowedemailpatterns) as $allowedpattern) {
             if (fnmatch($allowedpattern, $email)) {
                 return true;
             }
