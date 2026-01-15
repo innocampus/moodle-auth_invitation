@@ -75,6 +75,7 @@ class login_signup_form extends \login_signup_form {
 
         // Add invitation token.
         $mform->addElement('hidden', 'invitationtoken');
+        $mform->setType('invitationtoken', PARAM_ALPHANUM);
         $mform->setConstant('invitationtoken', $invitationtoken);
 
         // Hide username field if username is auto-generated.

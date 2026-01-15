@@ -253,7 +253,7 @@ class auth_plugin_invitation extends auth_plugin_base {
         // Return invitation token if it is a string.
         $token = $wantsurl->param('token');
         if (is_string($token)) {
-            return $token;
+            return clean_param($token, PARAM_ALPHANUM) ?: null;
         }
         return null;
     }
