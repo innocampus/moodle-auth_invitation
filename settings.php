@@ -40,14 +40,6 @@ if ($ADMIN->fulltree) {
         1
     ));
 
-    // Roles to assign to registered users.
-    $settings->add(new admin_setting_pickroles(
-        'auth_invitation/assignedroles',
-        get_string('assignedroles', 'auth_invitation'),
-        get_string('assignedroles_help', 'auth_invitation'),
-        []
-    ));
-
     // Patterns for allowed and prohibited email addresses.
     $settings->add(new admin_setting_configtextarea(
         'auth_invitation/allowedemailpatterns',
@@ -68,6 +60,14 @@ if ($ADMIN->fulltree) {
         get_string('prohibitedemailloginerror', 'auth_invitation'),
         get_string('prohibitedemailloginerror_help', 'auth_invitation'),
         1
+    ));
+
+    // Roles to assign to registered users.
+    $settings->add(new admin_setting_pickroles(
+            'auth_invitation/assignedroles',
+            get_string('assignedroles', 'auth_invitation'),
+            get_string('assignedroles_help', 'auth_invitation'),
+            []
     ));
 
     // Whether to send a welcome email.
