@@ -1,6 +1,6 @@
-# Invitation authentication plugin for Moodle
+# Invitation-based self-registration authentication plugin for Moodle
 
-The invitation authentication plugin for Moodle extends the functionality of Michael Milette's 
+The Invitation-based self-registration authentication plugin for Moodle extends the functionality of Michael Milette's 
 [Invitation Enrolment Moodle Plugin](https://moodle.org/plugins/enrol_invitation) by allowing individuals who were
 invited to a Moodle course to sign up for an account if they do not have one, yet.
 
@@ -26,8 +26,9 @@ use this plugin when another method for self registration is active.
 
 1. Clone this repository to the directory `auth/invitation` in your Moodle root and install the plugin.
 2. Enable the new authentication method by navigating to *Site administration > Plugins > Authentication > Manage 
-   authentication* and clicking the eye icon in the "Invitation" row.
-3. Configure the authentication method at *Site administration > Plugins > Authentication > Invitation*.
+   authentication* and clicking the eye icon in the "Invitation-based self-registration" row.
+3. Configure the authentication method at *Site administration > Plugins > Authentication > Invitation-based 
+   self-registration*.
 4. Allow self registration by navigating to *Site administration > Plugins > Authentication > Manage authentication* 
    and selecting the new method in the "Self registration" (`registerauth`) admin setting.
 5. You should also enable the "Allow log in via email" (`authloginviaemail`) admin setting on the same page if you have
