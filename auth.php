@@ -23,7 +23,8 @@
  */
 
 use auth_invitation\email_helper;
-use Random\RandomException;
+use core\lock\lock_config;
+use core\exception\coding_exception;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -114,49 +115,50 @@ class auth_plugin_invitation extends auth_plugin_base {
      *
      * @param object $user new user object
      * @param boolean $notify print notice with link and terminate
+     * @return bool
+     * @throws coding_exception
+     * @throws dml_exception
+     * @throws dml_transaction_exception
      * @throws moodle_exception
-     * @throws RandomException
      */
     public function user_signup($user, $notify = true): bool {
-        global $CFG;
+        global $DB;
 
-        // Validate invitation token.
+        // Extract invitationtoken from user data.
         if (empty($user->invitationtoken)) {
             throw new coding_exception('Missing invitationtoken in user data from signup form.');
         }
-        $invite = $this->validate_signup_prerequisites($user->invitationtoken);
-        if (strtolower($invite->email) !== strtolower($user->email)) {
-            throw new coding_exception('Email in user data from signup form does not match email in invitation.');
+        $invitationtoken = $user->invitationtoken;
+        unset($user->invitationtoken);
+
+        // Acquire lock to prevent race conditions.
+        $locktype = 'auth_invitation_signup';
+        $resource = 'invitation:' . $invitationtoken;
+        $lockfactory = lock_config::get_lock_factory($locktype);
+        $lock = $lockfactory->get_lock($resource, timeout: 5);
+        if (!$lock) {
+            throw new moodle_exception('locktimeout');
+        }
+        try {
+            // Start a transaction to prevent partially completed signup.
+            $transaction = $DB->start_delegated_transaction();
+
+            // Perform necessary checks and actually create the user.
+            $this->user_signup_internal($invitationtoken, $user);
+
+            // Commit BEFORE the lock is released (in finally). Order matters here!
+            $transaction->allow_commit();
+        } catch (Exception | Throwable $e) {
+            if (isset($transaction)) {
+                $transaction->rollback($e);
+            }
+            throw $e; // Rethrow.
+        } finally {
+            $lock->release();
         }
 
-        // We can confirm the user since the invitation token is valid (and matches their email address).
-        $user->confirmed = 1;
-
-        // Create user account.
-        require_once($CFG->dirroot . '/user/profile/lib.php');
-        require_once($CFG->dirroot . '/user/lib.php');
-
-        $plainpassword = $user->password;
-        $user->password = hash_internal_user_password($user->password);
-        if (empty($user->calendartype)) {
-            $user->calendartype = $CFG->calendartype;
-        }
-
-        $user->id = user_create_user($user, false, false);
-
-        user_add_password_history($user->id, $plainpassword);
-
-        // Save any custom profile field information.
-        profile_save_data($user);
-
-        // Assign the invitation to the new user account so that this (and only this) account may accept the invitation later,
-        // even if the user changes their email address before doing so.
-        $this->update_invitation_userid($invite, $user->id);
-
-        // Assign global roles.
-        $this->assign_global_roles($user->id);
-
-        // Trigger event.
+        // Trigger user_created event.
+        // This is done after the transaction has been committed because it may have side effects introduced by event handlers.
         \core\event\user_created::create_from_userid($user->id)->trigger();
 
         if ($this->config->sendwelcomeemail) {
@@ -172,10 +174,62 @@ class auth_plugin_invitation extends auth_plugin_base {
             \core\session\manager::apply_concurrent_login_limit($user->id, session_id());
 
             // Redirect to post-signup page.
-            redirect(new moodle_url('/auth/invitation/postsignup.php', ['invitationtoken' => $invite->token]));
+            redirect(new moodle_url('/auth/invitation/postsignup.php', ['invitationtoken' => $invitationtoken]));
         }
 
         return true;
+    }
+
+    /**
+     * Creates a user account for a specific invitation.
+     *
+     * This method validates whether the invitation is valid and matches the user's email address.
+     *
+     * This method does not trigger any events or send any confirmation emails. This means that the calling method may safely roll
+     * back any changes made by this function if an error occurs.
+     *
+     * @param string $invitationtoken The invitation token used to sign up.
+     * @param stdClass $user The user data from the signup form.
+     * @throws coding_exception
+     * @throws dml_exception
+     * @throws moodle_exception
+     */
+    protected function user_signup_internal(string $invitationtoken, stdClass $user): void {
+        global $CFG;
+
+        // Validate invitation token.
+        $invite = $this->validate_signup_prerequisites($invitationtoken);
+        if (strtolower($invite->email) !== strtolower($user->email)) {
+            throw new coding_exception('Email in user data from signup form does not match email in invitation.');
+        }
+
+        // We can confirm the user since the invitation token is valid (and matches their email address).
+        $user->confirmed = 1;
+
+        // Create user account.
+        // Adopted from auth_plugin_email::user_signup_with_confirmation().
+        require_once($CFG->dirroot . '/user/profile/lib.php');
+        require_once($CFG->dirroot . '/user/lib.php');
+
+        $plainpassword = $user->password;
+        $user->password = hash_internal_user_password($user->password);
+        if (empty($user->calendartype)) {
+            $user->calendartype = $CFG->calendartype;
+        }
+
+        $user->id = user_create_user($user, updatepassword: false, triggerevent: false);
+
+        user_add_password_history($user->id, $plainpassword);
+
+        // Save any custom profile field information.
+        profile_save_data($user);
+
+        // Assign the invitation to the new user account so that this (and only this) account may accept the invitation later,
+        // even if the user changes their email address before doing so.
+        $this->update_invitation_userid($invite, $user->id);
+
+        // Assign global roles.
+        $this->assign_global_roles($user->id);
     }
 
     /**
