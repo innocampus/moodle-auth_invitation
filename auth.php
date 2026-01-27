@@ -446,7 +446,6 @@ class auth_plugin_invitation extends auth_plugin_base {
      *
      * @param string $email The email address of the invited user.
      * @return bool Whether self-registration using this plugin is allowed.
-     * @throws dml_exception
      */
     protected function is_allowed_email(string $email): bool {
         $email = strtolower($email);
@@ -467,22 +466,24 @@ class auth_plugin_invitation extends auth_plugin_base {
     /**
      * Get user by email.
      *
-     * @param string $email Case and accent-insensitive email address.
+     * @param string $email Case-insensitive and accent-sensitive email address.
      * @return stdClass|null User or null if not found.
      * @throws dml_exception
      */
     protected function get_user_by_email(string $email): ?stdClass {
         global $DB, $CFG;
 
-        // Emails in Moodle as case-insensitive and accents-sensitive. Such a combination can lead to very slow queries
+        // The following is adopted from signup_validate_data().
+
+        // Emails in Moodle are case-insensitive and accents-sensitive. Such a combination can lead to very slow queries
         // on some DBs such as MySQL. So we first get the list of candidate users in a subselect via more effective
         // accent-insensitive query that can make use of the index and only then we search within that limited subset.
         $sql = "SELECT *
                   FROM {user}
-                 WHERE " . $DB->sql_equal('email', ':email1', false, true) . "
+                 WHERE " . $DB->sql_equal('email', ':email1', casesensitive: false, accentsensitive: true) . "
                    AND id IN (SELECT id
                                 FROM {user}
-                               WHERE " . $DB->sql_equal('email', ':email2', false, false) . "
+                               WHERE " . $DB->sql_equal('email', ':email2', casesensitive: false, accentsensitive: false) . "
                                  AND mnethostid = :mnethostid)";
 
         $params = [
