@@ -149,6 +149,10 @@ class auth_plugin_invitation extends auth_plugin_base {
         // Save any custom profile field information.
         profile_save_data($user);
 
+        // Assign the invitation to the new user account so that this (and only this) account may accept the invitation later,
+        // even if the user changes their email address before doing so.
+        $this->update_invitation_userid($invite, $user->id);
+
         // Assign global roles.
         $this->assign_global_roles($user->id);
 
@@ -172,6 +176,23 @@ class auth_plugin_invitation extends auth_plugin_base {
         }
 
         return true;
+    }
+
+    /**
+     * Updates an invitation record, setting the `userid` field to the specified value.
+     *
+     * @param stdClass $invitation The invitation record. Must contain the `id` field. The object's `userid` field is updated by
+     * this function.
+     * @param int $userid The new value for the `userid` field.
+     * @throws dml_exception
+     */
+    protected function update_invitation_userid(stdClass $invitation, int $userid): void {
+        global $DB;
+        $DB->update_record('enrol_invitation', [
+            'id' => $invitation->id,
+            'userid' => $userid,
+        ]);
+        $invitation->userid = $userid;
     }
 
     /**
