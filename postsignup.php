@@ -24,7 +24,7 @@
 
 require('../../config.php');
 
-global $OUTPUT, $PAGE, $SITE;
+global $OUTPUT, $PAGE, $SITE, $USER;
 
 $token = required_param('invitationtoken', PARAM_ALPHANUM);
 
@@ -35,6 +35,16 @@ $PAGE->set_title(get_string('signupcomplete', 'auth_invitation'));
 $PAGE->set_heading($SITE->fullname);
 
 require_login(autologinguest: false);
+
+/** @var auth_plugin_invitation $auth */
+$auth = get_auth_plugin('invitation');
+$invite = $auth->get_valid_invitation($token);
+if (!$invite) {
+    throw new moodle_exception('invalidinvite', 'auth_invitation');
+}
+if ($invite->userid != $USER->id) {
+    throw new moodle_exception('accessdenied', 'admin');
+}
 
 echo $OUTPUT->header();
 

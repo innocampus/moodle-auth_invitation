@@ -290,7 +290,7 @@ class auth_plugin_invitation extends auth_plugin_base {
      */
     public function get_valid_invitation(string $token): ?stdClass {
         global $DB;
-        if (!enrol_get_plugin('invitation')) {
+        if (!enrol_get_plugin('invitation') || !enrol_is_enabled('invitation')) {
             return null;
         }
         return $DB->get_record_select(
@@ -310,7 +310,7 @@ class auth_plugin_invitation extends auth_plugin_base {
      * @throws moodle_exception
      * @throws dml_exception
      */
-    protected function get_invitation_token_from_session(): ?string {
+    public function get_invitation_token_from_session(): ?string {
         global $SESSION;
         if (empty($SESSION->wantsurl)) {
             return null;
@@ -416,7 +416,7 @@ class auth_plugin_invitation extends auth_plugin_base {
      * @throws moodle_exception
      * @throws dml_exception
      */
-    protected function validate_signup_prerequisites(?string $token): stdClass {
+    public function validate_signup_prerequisites(?string $token): stdClass {
         if (!$token) {
             throw new moodle_exception('signuponlywithinvite', 'auth_invitation');
         }
@@ -447,7 +447,7 @@ class auth_plugin_invitation extends auth_plugin_base {
      * @param string $email The email address of the invited user.
      * @return bool Whether self-registration using this plugin is allowed.
      */
-    protected function is_allowed_email(string $email): bool {
+    public function is_allowed_email(string $email): bool {
         $email = strtolower($email);
         $splitpatterns = fn($patterns) => array_filter(array_map('trim', explode("\n", $patterns)));
         foreach ($splitpatterns($this->config->prohibitedemailpatterns) as $prohibitedpattern) {

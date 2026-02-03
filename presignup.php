@@ -34,6 +34,11 @@ $PAGE->set_pagelayout('login');
 $PAGE->set_title(get_string('acceptinvitation', 'auth_invitation'));
 $PAGE->set_heading($SITE->fullname);
 
+/** @var auth_plugin_invitation $auth */
+$auth = get_auth_plugin('invitation');
+$token = $auth->get_invitation_token_from_session();
+$auth->validate_signup_prerequisites($token);
+
 echo $OUTPUT->header();
 
 $context = [
