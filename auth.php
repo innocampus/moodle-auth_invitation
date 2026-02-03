@@ -28,6 +28,8 @@ use core\exception\coding_exception;
 
 defined('MOODLE_INTERNAL') || die();
 
+global $CFG;
+
 require_once($CFG->libdir . '/authlib.php');
 
 /**
@@ -42,6 +44,8 @@ require_once($CFG->libdir . '/authlib.php');
 class auth_plugin_invitation extends auth_plugin_base {
     /**
      * Constructor.
+     *
+     * @throws dml_exception
      */
     public function __construct() {
         $this->authtype = 'invitation';

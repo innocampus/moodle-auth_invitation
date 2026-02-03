@@ -26,10 +26,10 @@ class auth_invitation_generator extends component_generator_base {
      * Create an invitation record.
      *
      * @param array $attributes
-     * @return void
+     * @return stdClass The invitation record.
      * @throws dml_exception
      */
-    public function create_invitation(array $attributes): void {
+    public function create_invitation(array $attributes): stdClass {
         global $DB;
         $attributes = array_merge(
             [
@@ -37,6 +37,7 @@ class auth_invitation_generator extends component_generator_base {
             ],
             $attributes
         );
-        $DB->insert_record('enrol_invitation', $attributes);
+        $id = $DB->insert_record('enrol_invitation', $attributes);
+        return $DB->get_record('enrol_invitation', ['id' => $id], strictness: MUST_EXIST);
     }
 }
