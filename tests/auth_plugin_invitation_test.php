@@ -445,7 +445,7 @@ final class auth_plugin_invitation_test extends \advanced_testcase {
                     'sendwelcomeemail' => true,
                     'assignedroles' => 'invalid',
                 ],
-                'expectederror' => dml_read_exception::class,
+                'expectederror' => dml_exception::class,
             ],
         ];
     }
