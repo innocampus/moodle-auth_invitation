@@ -245,7 +245,6 @@ final class auth_plugin_invitation_test extends \advanced_testcase {
             }
 
             $actual = $auth->user_signup($user, notify: false); // TODO: Find a way to test with `notify: true`.
-
         } catch (Exception | Throwable $e) {
             // On error, we make sure that no email was sent out and no user account was created.
             // There might be events in the event sink, so we don't check for that.
