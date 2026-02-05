@@ -127,6 +127,8 @@ class auth_plugin_invitation extends auth_plugin_base {
      */
     public function user_signup($user, $notify = true): bool {
         global $DB;
+        // Being in a transaction could lead to race conditions between two clients registering using the same invitation.
+        $DB->transactions_forbidden();
 
         // Extract invitationtoken from user data.
         if (empty($user->invitationtoken)) {
@@ -161,12 +163,9 @@ class auth_plugin_invitation extends auth_plugin_base {
             $lock->release();
         }
 
-        // Trigger user_created event.
-        // This is done after the transaction has been committed because it may have side effects introduced by event handlers.
-        \core\event\user_created::create_from_userid($user->id)->trigger();
-
         if ($this->config->sendwelcomeemail) {
             // Send welcome email.
+            // This is done after the transaction has been committed because it cannot be undone.
             $this->send_welcome_email($user);
         }
 
@@ -231,6 +230,9 @@ class auth_plugin_invitation extends auth_plugin_base {
         // Assign the invitation to the new user account so that this (and only this) account may accept the invitation later,
         // even if the user changes their email address before doing so.
         $this->update_invitation_userid($invite, $user->id);
+
+        // Trigger user_created event.
+        \core\event\user_created::create_from_userid($user->id)->trigger();
 
         // Assign global roles.
         $this->assign_global_roles($user->id);
