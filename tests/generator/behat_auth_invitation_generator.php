@@ -36,7 +36,7 @@ class behat_auth_invitation_generator extends behat_generator_base {
             'invitations' => [
                 'datagenerator' => 'invitation',
                 'required' => ['token', 'course', 'email', 'timeexpiration'],
-                'switchids' => ['role' => 'roleid', 'course' => 'courseid'],
+                'switchids' => ['role' => 'roleid', 'course' => 'courseid', 'user' => 'userid'],
             ],
         ];
     }
