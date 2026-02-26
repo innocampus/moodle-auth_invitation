@@ -19,12 +19,13 @@ use this plugin when another method for self registration is active.
 
 ## Requirements
 
-- Moodle 5.0
-- enrol_invitation 2.3.0
+- Moodle >= 5.0
+- enrol_invitation >= 2.3.0
 
 ## Setup
 
-1. Clone this repository to the directory `auth/invitation` in your Moodle root and install the plugin.
+1. Clone this repository to the directory `auth/invitation` (or `public/auth/invitation` for Moodle >= 5.1) in your 
+   Moodle root and install the plugin.
 2. Enable the new authentication method by navigating to *Site administration > Plugins > Authentication > Manage 
    authentication* and clicking the eye icon in the "Invitation-based self-registration" row.
 3. Configure the authentication method at *Site administration > Plugins > Authentication > Invitation-based 
