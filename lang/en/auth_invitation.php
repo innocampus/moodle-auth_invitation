@@ -99,9 +99,7 @@ $string['welcomeemail'] = 'Hi {$a->firstname},
 
 Welcome to \'{$a->sitefullname}\'!
 
-Your account has been created successfully. If you have not already done so, you may now access the course which you were invited to by following the link in the invitation email.
-
-Please note that the invitation link can only be used once. To access the course in the future, please log in here using your chosen credentials and select the course from the list on the \'My courses\' page:
+Your account has been created successfully. From now on you can log in here using your chosen credentials:
 
 {$a->loginurl}
 

@@ -99,9 +99,7 @@ $string['welcomeemail'] = 'Guten Tag {$a->fullname},
 
 Willkommen bei \'{$a->sitefullname}\'!
 
-Ihr Nutzerkonto wurde erfolgreich angelegt. Falls noch nicht geschehen, können Sie jetzt den Kurs aufrufen, zu dem Sie eingeladen wurden, indem Sie dem Link in der ursprünglichen Einladungs-E-Mail folgen.
-
-Bitte beachten Sie, dass der Einladungslink nur einmal verwendet werden kann. Um in Zukunft auf den Kurs zuzugreifen, melden Sie sich bitte hier mit den von Ihnen festgelegten Zugangsdaten an und wählen Sie den Kurs in der Liste auf der Seite \'Meine Kurse\':
+Ihr Nutzerkonto wurde erfolgreich angelegt. Sie können sich ab sofort mit den von Ihnen gewählten Zugangsdaten hier anmelden:
 
 {$a->loginurl}
 
