@@ -93,6 +93,7 @@ $string['signuponlywithinvite'] = 'Self-registration is only possible with an in
 $string['signupprohibitedbyemail'] = 'Self-registration not allowed for this invitation because your email address is listed as prohibited. Please try to log in normally or contact the site administrators if you think this is an error.';
 $string['signupsettings'] = 'Settings for the sign up form';
 $string['signupsettingsdesc'] = 'Specify which profile data users can and must provide in the sign up form.';
+$string['updateprohibitedbyemail'] = 'The email address cannot be changed because the new email address is listed as prohibited.';
 $string['usernameprefix'] = 'Prefix for generated usernames';
 $string['usernameprefix_help'] = 'The prefix specified here is prepended to generated usernames. The final username consists of this prefix followed by a randomly generated number.';
 $string['welcomeemail'] = 'Hi {$a->firstname},

@@ -103,6 +103,26 @@ class auth_plugin_invitation extends auth_plugin_base {
     }
 
     /**
+     * Called when the user record is updated.
+     *
+     * This checks whether the new email address is allowed.
+     *
+     * @param stdClass $olduser User object before modifications (without system magic quotes)
+     * @param stdClass $newuser New modified user object (without system magic quotes)
+     * @return bool true if updated or update ignored; false if error
+     * @throws moodle_exception
+     */
+    public function user_update($olduser, $newuser): bool {
+        if (
+            $olduser->email !== $newuser->email && !$this->is_allowed_email($newuser->email) &&
+            !has_capability('moodle/user:update', context_system::instance()) // Admins can change to any email address.
+        ) {
+            throw new moodle_exception('updateprohibitedbyemail', 'auth_invitation');
+        }
+        return true;
+    }
+
+    /**
      * Returns true if plugin allows user signup.
      *
      * @return true

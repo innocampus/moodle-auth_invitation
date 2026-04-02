@@ -93,6 +93,7 @@ $string['signuponlywithinvite'] = 'Die Selbstregistrierung ist nur mit einer Ein
 $string['signupprohibitedbyemail'] = 'Die Selbstregistrierung ist für diese Einladung nicht erlaubt, da Ihre E-Mail Adresse als verboten gelistet ist. Bitte versuchen Sie, sich normal anzumelden, oder wenden Sie sich an den technischen Support, falls Sie vermuten, dass ein Fehler vorliegt.';
 $string['signupsettings'] = 'Einstellungen des Registrierungsformulars';
 $string['signupsettingsdesc'] = 'Legen Sie fest, welche Daten Nutzer/innen im Registrierungsformular angeben können und müssen.';
+$string['updateprohibitedbyemail'] = 'Die E-Mail Adresse kann nicht geändert werden, da die neue E-Mail Adresse als verboten gelistet ist.';
 $string['usernameprefix'] = 'Präfix für generierte Anmeldenamen';
 $string['usernameprefix_help'] = 'Das hier angegebene Präfix wird automatisch generierten Anmeldenamen vorangestellt. Der finale Anmeldename besteht aus diesem Präfix gefolgt von einer zufällig generierten Zahl.';
 $string['welcomeemail'] = 'Guten Tag {$a->fullname},
